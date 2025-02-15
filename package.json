@@ -1,0 +1,15 @@
+{
+  "name": "astro-lumina-api",
+  "version": "1.0.0",
+  "description": "A Node.js API server for Astro Lumina",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.0",
+    "cors": "^2.8.5"
+  }
+}
