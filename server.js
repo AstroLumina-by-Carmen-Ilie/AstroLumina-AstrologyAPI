@@ -12,12 +12,14 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(cors({ origin: [
-  'http://localhost:5173', 
-  'https://astrolumina.netlify.app',
-  'https://carmenilie.com',
-  'https://www.carmenilie.com'
-]}));
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://astrolumina.netlify.app',
+    'https://carmenilie.com',
+    'https://www.carmenilie.com'
+  ]
+}));
 
 app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   const lang = req.params.lang;
@@ -33,7 +35,7 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   console.log('Processing request for valid language:', lang);
 
   try {
-    const response = await axios.post(API_URL, req.body, {
+    const response = await axios.post(API_URL + '/calc', req.body, {
       headers: {
         'x-api-key': API_KEY,
         'Accept-Language': lang
