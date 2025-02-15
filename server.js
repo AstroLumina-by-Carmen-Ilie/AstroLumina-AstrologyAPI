@@ -12,14 +12,35 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://astrolumina.netlify.app',
-    'https://carmenilie.com',
-    'https://www.carmenilie.com'
-  ]
-}));
+// app.use(cors({
+//   origin: [
+//     'http://localhost:5173',
+//     'https://astrolumina.netlify.app',
+//     'https://carmenilie.com',
+//     'https://www.carmenilie.com'
+//   ]
+// }));
+
+app.get('/interpretations', (req, res) => {
+  const varib = [
+    {
+      planet: 'Sun',
+      sign: 'Aries',
+      house: 'House 1'
+    },
+    {
+      planet: 'Sun',
+      sign: 'Taurus',
+      house: 'House 10'
+    }
+  ];
+  const interpretations = varib.map((item) => {
+    console.log(item);
+    const data = require(`./interpretations/ro/${item.planet}/${item.sign}/Houses.js`)[item.house];
+    console.log(data);
+  });
+  res.send("Check console log for the response.");
+});
 
 app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   const lang = req.params.lang;
