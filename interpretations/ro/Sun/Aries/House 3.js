@@ -1,0 +1,1 @@
+export const interpretation = "This placement gives you a quick, active mind and direct communication style. You're enthusiastic in learning and sharing ideas, often being the first to speak up. Your thoughts and speech are energetic and inspiring to others."

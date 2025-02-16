@@ -1,0 +1,1 @@
+﻿export const interpretation = "Mercury in Aries in the First House gives you a quick, direct communication style. You think fast and speak your mind without hesitation. Your thoughts are original and pioneering."

@@ -1,0 +1,1 @@
+﻿export const interpretation = "Your thinking and communication style is methodical and thorough. You learn best through hands-on experience and prefer practical knowledge. Your words carry weight, and others trust your judgment."

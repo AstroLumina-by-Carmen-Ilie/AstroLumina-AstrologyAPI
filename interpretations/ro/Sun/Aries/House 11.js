@@ -1,0 +1,1 @@
+﻿export const interpretation = "In the Eleventh House, the Sun in Aries makes you a dynamic and inspirational presence in groups and friendships. You are often seen as a leader among peers, with a strong desire to make a difference."

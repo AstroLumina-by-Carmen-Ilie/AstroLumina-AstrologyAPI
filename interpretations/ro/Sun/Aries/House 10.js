@@ -1,0 +1,1 @@
+﻿export const interpretation = "The Sun in Aries in the Tenth House enhances your leadership qualities in your career. You're ambitious and driven, often seeking positions of authority and recognition."

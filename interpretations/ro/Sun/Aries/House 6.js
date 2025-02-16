@@ -1,0 +1,1 @@
+﻿export const interpretation = "In the Sixth House, the Sun in Aries brings a dynamic approach to work and health. You're industrious and prefer to lead in your professional environment, taking the initiative in projects."

@@ -12,48 +12,100 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-// app.use(cors({
-//   origin: [
-//     'http://localhost:5173',
-//     'https://astrolumina.netlify.app',
-//     'https://carmenilie.com',
-//     'https://www.carmenilie.com'
-//   ]
-// }));
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://astrolumina.netlify.app',
+    'https://carmenilie.com',
+    'https://www.carmenilie.com'
+  ]
+}));
 
-app.get('/interpretations', (req, res) => {
-  const varib = [
-    {
-      planet: 'Sun',
-      sign: 'Aries',
-      house: 'House 1'
-    },
-    {
-      planet: 'Sun',
-      sign: 'Taurus',
-      house: 'House 10'
-    }
-  ];
-  const interpretations = varib.map((item) => {
-    console.log(item);
-    const data = require(`./interpretations/ro/${item.planet}/${item.sign}/Houses.js`)[item.house];
-    console.log(data);
-  });
-  res.send("Check console log for the response.");
+require('./utilities.js');
+
+app.get('/test', async (req, res) => {
+  try {
+    const testPayload = {
+      "longitude": 23.06339,
+      "latitude": 46.27406,
+      "year": 2025,
+      "month": 1,
+      "day": 27,
+      "hour": 12,
+      "minute": 0
+    };
+    const lang = 'ro';
+    const response = await axios.post(
+      `http://localhost:3000/api/v1/${lang}/interpretations`, 
+      testPayload,
+      {
+        headers: {
+          'Accept-Language': lang
+        }
+      }
+    );
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error in test endpoint:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
+app.post('/api/v1/:lang/interpretations', async (req, res) => {
+  const lang = req.params.lang;
+  const validLanguages = ['ro', 'en'];
+
+  if (!validLanguages.includes(lang)) {
+    return res.status(400).send('Invalid language specified. Use /ro/ or /en/.');
+  }
+
+  try {
+    const response = await axios.post(API_URL + '/calc', req.body, {
+      headers: {
+        'x-api-key': API_KEY,
+        'Accept-Language': lang
+      },
+    });
+    res.json({
+      data: response.data.dynamicTexts.map((p) => {
+        try {
+          const interpretation = require(
+            `./interpretations/${req.params.lang}/${p.planet}/${p.sign}/${p.house}.js`
+          );
+          return { 
+            planet: p.planet,
+            sign: p.sign,
+            house: p.house,
+            interpretation: interpretation.interpretation 
+          };
+        } catch (error) {
+          console.error(
+            `Error loading interpretation for ${p.planet} in ${p.sign}, ${p.house}:`, error
+          );
+          return {
+            planet: p.planet,
+            sign: p.sign,
+            house: p.house,
+            interpretation: 'Interpretation not found' 
+          };
+        }
+      })
+    });
+  } catch (error) {
+    console.error('Error getting data:', error);
+    res.status(500).send('Error getting data');
+  }
 });
 
 app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   const lang = req.params.lang;
   const validLanguages = ['ro', 'en'];
 
-  console.log('Received request for language:', lang);
-
   if (!validLanguages.includes(lang)) {
-    console.log('Invalid language:', lang);
     return res.status(400).send('Invalid language specified. Use /ro/ or /en/.');
   }
-
-  console.log('Processing request for valid language:', lang);
 
   try {
     const response = await axios.post(API_URL + '/calc', req.body, {
@@ -64,7 +116,7 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
     });
     console.log('API Response:', response.data);
     res.json({
-      dynamicTexts: response.data.dynamicTexts.map((p) => ({
+      data: response.data.dynamicTexts.map((p) => ({
         planet: p.planet,
         sign: p.sign,
         house: p.house

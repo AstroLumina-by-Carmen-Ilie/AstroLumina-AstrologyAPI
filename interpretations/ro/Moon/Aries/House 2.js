@@ -1,0 +1,1 @@
+﻿export const interpretation = "Your emotional security is tied to your sense of independence and ability to provide for yourself. You may experience fluctuating finances due to emotional spending, but you're also quick to earn when motivated."

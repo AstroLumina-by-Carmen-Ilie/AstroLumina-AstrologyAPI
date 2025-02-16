@@ -1,0 +1,1 @@
+﻿export const interpretation = "With the Sun in Aries in the Ninth House, you are adventurous in your pursuit of knowledge. You are drawn to new philosophies and cultures, often seeking to expand your horizons through travel and study."
