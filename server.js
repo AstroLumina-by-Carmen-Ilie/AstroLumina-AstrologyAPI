@@ -36,7 +36,7 @@ app.get('/test/:lang', async (req, res) => {
     };
     const lang = req.params.lang;
     const response = await axios.post(
-      `http://localhost:3000/api/v1/${lang}/planet-sign-house`, 
+      `http://localhost:3000/api/v1/${lang}/interpretations`, 
       testPayload,
       {
         headers: {

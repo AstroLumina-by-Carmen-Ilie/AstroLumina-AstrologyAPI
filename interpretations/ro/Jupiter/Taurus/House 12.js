@@ -1,3 +1,3 @@
 module.exports = {
-  interpretation: "Interpretation placeholder"
+  interpretation: "Loc pt interpretare"
 };
