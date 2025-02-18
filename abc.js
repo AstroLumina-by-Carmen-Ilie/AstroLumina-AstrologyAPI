@@ -45,7 +45,7 @@ planetOrder.forEach(planet => {
 
     // Create house files 1-12
     for (let house = 1; house <= 12; house++) {
-      const houseFile = path.join(signDir, `House ${house}.js`);
+      const houseFile = path.join(signDir, `Casa ${house}.js`);
       createFileIfNotExists(houseFile, interpretationTemplate);
     }
   });
