@@ -10,7 +10,7 @@ export const calculateSouthNode = (northNodeSign, northNodeHouse) => {
     const northNodeHouseIndex = houses.indexOf(northNodeHouse);
 
     return {
-        name: 'South Node',
+        name: 'Nodul Sud',
         sign: signs[(northNodeSignIndex + 6) % 12],
         house: houses[(northNodeHouseIndex + 6) % 12]
     };

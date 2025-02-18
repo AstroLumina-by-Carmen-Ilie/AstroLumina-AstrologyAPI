@@ -22,9 +22,7 @@ app.use(cors({
   ]
 }));
 
-require('./utilities.js');
-
-app.get('/test', async (req, res) => {
+app.get('/test/:lang', async (req, res) => {
   try {
     const testPayload = {
       "longitude": 23.06339,
@@ -35,9 +33,9 @@ app.get('/test', async (req, res) => {
       "hour": 12,
       "minute": 0
     };
-    const lang = 'ro';
+    const lang = req.params.lang;
     const response = await axios.post(
-      `http://localhost:3000/api/v1/${lang}/interpretations`, 
+      `http://localhost:3000/api/v1/${lang}/planet-sign-house`, 
       testPayload,
       {
         headers: {
@@ -50,6 +48,62 @@ app.get('/test', async (req, res) => {
   } catch (error) {
     console.error('Error in test endpoint:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
+app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
+  const lang = req.params.lang;
+  const validLanguages = ['ro', 'en'];
+
+  if (!validLanguages.includes(lang)) {
+    return res.status(400).send('Invalid language specified. Use /ro/ or /en/.');
+  }
+
+  const { translations: t } = require('./translations/' + lang + '.js')
+  const { calculateSouthNode } = require('./utilities.js');
+  const { planetOrder } = require('./constants.js');
+  try {
+    const response = await axios.post(API_URL + '/calc', req.body, {
+      headers: {
+        'x-api-key': API_KEY,
+        'Accept-Language': lang
+      },
+    });
+    console.log('API Response:', response.data);
+
+    const northNodeData = response.data.dynamicTexts.find(p => p.planet === 'Nodul Nord');
+    let southNodeData;
+    if (northNodeData) {
+      southNodeData = calculateSouthNode(northNodeData.sign, northNodeData.house);
+    }
+
+    let allData = [...response.data.dynamicTexts];
+    if (southNodeData) {
+      allData.push({
+        planet: "Nodul Sud",
+        sign: southNodeData.sign,
+        house: southNodeData.house
+      });
+    }
+
+    allData.sort((a, b) => {
+      const indexA = planetOrder.indexOf(a.planet);
+      const indexB = planetOrder.indexOf(b.planet);
+      return indexA - indexB;
+    });
+
+    const mappedData = allData.map((p) => ({
+      planet: t["planets"][p.planet],
+      sign: t["signs"][p.sign],
+      house: p.house.split(" ").map((word, i) => i == 0 ? t[word] : word).join(" ")
+    }));
+
+    res.json({
+      data: mappedData
+    });
+  } catch (error) {
+    console.error('Error getting data:', error);
+    res.status(500).send('Error getting data');
   }
 });
 
@@ -92,35 +146,6 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
           };
         }
       })
-    });
-  } catch (error) {
-    console.error('Error getting data:', error);
-    res.status(500).send('Error getting data');
-  }
-});
-
-app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
-  const lang = req.params.lang;
-  const validLanguages = ['ro', 'en'];
-
-  if (!validLanguages.includes(lang)) {
-    return res.status(400).send('Invalid language specified. Use /ro/ or /en/.');
-  }
-
-  try {
-    const response = await axios.post(API_URL + '/calc', req.body, {
-      headers: {
-        'x-api-key': API_KEY,
-        'Accept-Language': lang
-      },
-    });
-    console.log('API Response:', response.data);
-    res.json({
-      data: response.data.dynamicTexts.map((p) => ({
-        planet: p.planet,
-        sign: p.sign,
-        house: p.house
-      }))
     });
   } catch (error) {
     console.error('Error getting data:', error);
