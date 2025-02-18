@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const cors = require('cors');
 
 const API_KEY = process.env.API_KEY;
@@ -52,17 +53,51 @@ app.get('/test/:lang', async (req, res) => {
 });
 
 app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
-  const lang = req.params.lang;
+  console.log('Received request body:', req.body);
+  const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
   if (!validLanguages.includes(lang)) {
-    return res.status(400).send('Invalid language specified. Use /ro/ or /en/.');
+    return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
 
-  const { translations: t } = require('./translations/' + lang + '.js')
-  const { calculateSouthNode } = require('./utilities.js');
-  const { planetOrder } = require('./constants.js');
+  const { longitude, latitude, year, month, day, hour, minute } = req.body;
+  
+  console.log('Extracted values:', { longitude, latitude, year, month, day, hour, minute });
+
+  // Validate required parameters
+  if (!longitude && longitude !== 0 || 
+      !latitude && latitude !== 0 || 
+      !year && year !== 0 || 
+      !month && month !== 0 || 
+      !day && day !== 0 || 
+      !hour && hour !== 0 || 
+      !minute && minute !== 0) {
+    return res.status(400).json({ 
+      error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute',
+      received: { longitude, latitude, year, month, day, hour, minute }
+    });
+  }
+
+  // Validate parameter types and ranges
+  if (typeof longitude !== 'number' || longitude < -180 || longitude > 180 ||
+      typeof latitude !== 'number' || latitude < -90 || latitude > 90 ||
+      typeof year !== 'number' || year < 1900 || year > 2300 ||
+      typeof month !== 'number' || month < 1 || month > 12 ||
+      typeof day !== 'number' || day < 1 || day > 31 ||
+      typeof hour !== 'number' || hour < 0 || hour > 23 ||
+      typeof minute !== 'number' || minute < 0 || minute > 59) {
+    return res.status(400).json({ error: 'Invalid parameter values. Please check the ranges and types of all parameters.' });
+  }
+
+  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
+  const utilitiesPath = path.resolve(__dirname, 'utilities.js');
+  const constantsPath = path.resolve(__dirname, 'constants.js');
+
   try {
+    const { translations: t } = require(translationsPath);
+    const { calculateSouthNode } = require(utilitiesPath);
+    const { planetOrder } = require(constantsPath);
     const response = await axios.post(API_URL + '/calc', req.body, {
       headers: {
         'x-api-key': API_KEY,
@@ -103,16 +138,36 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting data:', error);
-    res.status(500).send('Error getting data');
+    res.status(500).json({ error: 'Error getting data', details: error.message });
   }
 });
 
 app.post('/api/v1/:lang/interpretations', async (req, res) => {
-  const lang = req.params.lang;
+  const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
   if (!validLanguages.includes(lang)) {
-    return res.status(400).send('Invalid language specified. Use /ro/ or /en/.');
+    return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
+  }
+
+  const { longitude, latitude, year, month, day, hour, minute } = req.body;
+
+  // Validate required parameters
+  if (!longitude || !latitude || !year || !month || !day || !hour || !minute) {
+    return res.status(400).json({ 
+      error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute' 
+    });
+  }
+
+  // Validate parameter types and ranges
+  if (typeof longitude !== 'number' || longitude < -180 || longitude > 180 ||
+      typeof latitude !== 'number' || latitude < -90 || latitude > 90 ||
+      typeof year !== 'number' || year < 1900 || year > 2300 ||
+      typeof month !== 'number' || month < 1 || month > 12 ||
+      typeof day !== 'number' || day < 1 || day > 31 ||
+      typeof hour !== 'number' || hour < 0 || hour > 23 ||
+      typeof minute !== 'number' || minute < 0 || minute > 59) {
+    return res.status(400).json({ error: 'Invalid parameter values. Please check the ranges and types of all parameters.' });
   }
 
   try {
@@ -125,9 +180,15 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
     res.json({
       data: response.data.dynamicTexts.map((p) => {
         try {
-          const interpretation = require(
-            `./interpretations/${req.params.lang}/${p.planet}/${p.sign}/${p.house}.js`
+          const interpretationPath = path.resolve(
+            __dirname,
+            'interpretations',
+            lang,
+            p.planet,
+            p.sign,
+            `${p.house}.js`
           );
+          const interpretation = require(interpretationPath);
           return { 
             planet: p.planet,
             sign: p.sign,
@@ -149,12 +210,13 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting data:', error);
-    res.status(500).send('Error getting data');
+    res.status(500).json({ error: 'Error getting data', details: error.message });
   }
 });
 
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-  fs.writeFileSync('server.pid', process.pid.toString());
+  const pidPath = path.resolve(__dirname, 'server.pid');
+  fs.writeFileSync(pidPath, process.pid.toString());
 });
