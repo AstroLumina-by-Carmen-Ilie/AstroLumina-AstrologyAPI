@@ -171,42 +171,48 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
   }
 
   try {
-    const response = await axios.post(API_URL + '/calc', req.body, {
-      headers: {
-        'x-api-key': API_KEY,
-        'Accept-Language': lang
-      },
-    });
-    res.json({
-      data: response.data.dynamicTexts.map((p) => {
-        try {
-          const interpretationPath = path.resolve(
-            __dirname,
-            'interpretations',
-            lang,
-            p.planet,
-            p.sign,
-            `${p.house}.js`
-          );
-          const interpretation = require(interpretationPath);
-          return { 
-            planet: p.planet,
-            sign: p.sign,
-            house: p.house,
-            interpretation: interpretation.interpretation 
-          };
-        } catch (error) {
-          console.error(
-            `Error loading interpretation for ${p.planet} in ${p.sign}, ${p.house}:`, error
-          );
-          return {
-            planet: p.planet,
-            sign: p.sign,
-            house: p.house,
-            interpretation: 'Interpretation not found' 
-          };
+    const response = await axios.post(
+      `http://localhost:3000/api/v1/${lang}/planet-sign-house`, 
+      testPayload,
+      {
+        headers: {
+          'Accept-Language': lang
         }
-      })
+      }
+    );
+    
+    const interpretedData = response.data.map((p) => {
+      try {
+        const interpretationPath = path.resolve(
+          __dirname,
+          'interpretations',
+          lang,
+          p.planet,
+          p.sign,
+          `${p.house}.js`
+        );
+        const interpretation = require(interpretationPath);
+        return { 
+          planet: p.planet,
+          sign: p.sign,
+          house: p.house,
+          interpretation: interpretation.interpretation 
+        };
+      } catch (error) {
+        console.error(
+          `Error loading interpretation for ${p.planet} in ${p.sign}, ${p.house}:`, error
+        );
+        return {
+          planet: p.planet,
+          sign: p.sign,
+          house: p.house,
+          interpretation: '...' 
+        };
+      }
+    });
+
+    res.json({
+      data: interpretedData
     });
   } catch (error) {
     console.error('Error getting data:', error);
