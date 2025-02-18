@@ -1,1 +1,3 @@
-﻿export const interpretation = "The Moon in Aries in the First House makes you emotionally dynamic and quick to react. Your feelings are expressed openly and directly, and you need freedom to act on your emotional impulses. You're naturally protective of your independence."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

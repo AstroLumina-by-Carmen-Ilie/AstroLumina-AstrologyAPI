@@ -1,1 +1,3 @@
-﻿export const interpretation = "In the Eighth House, the Sun in Aries gives you a fearless approach to transformation and shared resources. You are bold in dealing with change and may have a strong interest in the mysteries of life."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

@@ -1,1 +1,3 @@
-﻿export const interpretation = "With the Sun in Aries in the Fifth House, you are creative and enthusiastic in your self-expression. You enjoy taking risks in love and creativity, often being the life of the party."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

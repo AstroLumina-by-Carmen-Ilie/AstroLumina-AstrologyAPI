@@ -1,1 +1,3 @@
-﻿export const interpretation = "Your learning and communication style is energetic and pioneering. You excel in debates and quick-thinking situations. Leadership in education or communication fields suits you."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

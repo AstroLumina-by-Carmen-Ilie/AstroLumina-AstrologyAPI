@@ -1,1 +1,3 @@
-export const interpretation = "With the Sun in Aries in the First House, you possess a powerful, dynamic personality. You're a natural leader with boundless energy and enthusiasm. Your self-expression is direct and forceful, and you're not afraid to take initiative. This placement enhances your pioneering spirit and ability to start new projects."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

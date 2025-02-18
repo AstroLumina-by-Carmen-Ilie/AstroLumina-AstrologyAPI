@@ -1,1 +1,3 @@
-﻿export const interpretation = "The Sun in Aries in the Twelfth House gives you a strong inner drive and spiritual energy. You may work behind the scenes to achieve your goals, with a focus on personal growth and self-discovery."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

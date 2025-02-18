@@ -1,4 +1,4 @@
-export const zodiacOrder = [
+const zodiacOrder = [
   "Aries",
   "Taurus",
   "Gemini",
@@ -13,7 +13,7 @@ export const zodiacOrder = [
   "Pisces"
 ];
 
-export const planetOrder = [
+const planetOrder = [
   "Sun",
   "Moon",
   "Mercury",
@@ -30,3 +30,8 @@ export const planetOrder = [
   "Nodul Nord",
   "Nodul Sud"
 ];
+
+module.exports = {
+  planetOrder,
+  zodiacOrder,
+}

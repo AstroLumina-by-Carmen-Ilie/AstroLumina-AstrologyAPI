@@ -1,1 +1,3 @@
-export const interpretation = "The Sun in Aries in your Second House brings a dynamic approach to material resources. You're enterprising and confident in financial matters, though sometimes impulsive with spending. You value independence and may prefer to earn your own way rather than rely on others."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

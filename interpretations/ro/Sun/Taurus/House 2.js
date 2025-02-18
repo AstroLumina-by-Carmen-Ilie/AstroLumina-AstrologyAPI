@@ -1,1 +1,3 @@
-﻿export const interpretation = "You have a natural talent for managing resources and building material security. Your approach to finances is practical and patient, preferring steady growth over risky ventures. You value quality and durability in your possessions."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

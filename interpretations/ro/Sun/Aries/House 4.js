@@ -1,1 +1,3 @@
-﻿export const interpretation = "Your home life is energetic and dynamic. You may be the leader of your household, taking initiative in family matters. There's a strong need to establish your own living space and make independent decisions about your domestic life."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};

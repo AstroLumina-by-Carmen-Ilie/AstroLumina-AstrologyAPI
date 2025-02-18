@@ -1,1 +1,3 @@
-﻿export const interpretation = "Your home is your sanctuary, and you invest considerable energy in creating a comfortable, beautiful living space. Family traditions and stability are extremely important to you. You're the rock that others in your family rely on."
+module.exports = {
+  interpretation: "Interpretation placeholder"
+};
