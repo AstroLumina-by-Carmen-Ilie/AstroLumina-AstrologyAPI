@@ -151,11 +151,20 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
   }
 
   const { longitude, latitude, year, month, day, hour, minute } = req.body;
+  
+  console.log('Extracted values:', { longitude, latitude, year, month, day, hour, minute });
 
   // Validate required parameters
-  if (!longitude || !latitude || !year || !month || !day || !hour || !minute) {
+  if (!longitude && longitude !== 0 || 
+      !latitude && latitude !== 0 || 
+      !year && year !== 0 || 
+      !month && month !== 0 || 
+      !day && day !== 0 || 
+      !hour && hour !== 0 || 
+      !minute && minute !== 0) {
     return res.status(400).json({ 
-      error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute' 
+      error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute',
+      received: { longitude, latitude, year, month, day, hour, minute }
     });
   }
 
