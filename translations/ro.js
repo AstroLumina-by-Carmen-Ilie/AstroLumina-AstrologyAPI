@@ -10,7 +10,7 @@ export const translations = {
         "Uranus": "Uranus",
         "Neptune": "Neptun",
         "Pluto": "Pluto",
-        "Ascendant": "Ascendentul",
+        "Ascendant": "Ascendent",
         "Lilith": "Lilith",
         "Chiron": "Chiron",
         "Nodul Nord": "Nodul Nord",

@@ -23,37 +23,7 @@ app.use(cors({
   ]
 }));
 
-app.get('/test/:lang', async (req, res) => {
-  try {
-    const testPayload = {
-      "longitude": 23.06339,
-      "latitude": 46.27406,
-      "year": 2025,
-      "month": 1,
-      "day": 27,
-      "hour": 12,
-      "minute": 0
-    };
-    const lang = req.params.lang;
-    const response = await axios.post(
-      `http://localhost:3000/api/v1/${lang}/interpretations`, 
-      testPayload,
-      {
-        headers: {
-          'Accept-Language': lang
-        }
-      }
-    );
-    
-    res.json(response.data);
-  } catch (error) {
-    console.error('Error in test endpoint:', error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
-});
-
 app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
-  console.log('Received request body:', req.body);
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
@@ -62,8 +32,6 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   }
 
   const { longitude, latitude, year, month, day, hour, minute } = req.body;
-  
-  console.log('Extracted values:', { longitude, latitude, year, month, day, hour, minute });
 
   // Validate required parameters
   if (!longitude && longitude !== 0 || 
@@ -104,7 +72,6 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
         'Accept-Language': lang
       },
     });
-    console.log('API Response:', response.data);
 
     const northNodeData = response.data.dynamicTexts.find(p => p.planet === 'Nodul Nord');
     let southNodeData;
@@ -151,8 +118,6 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
   }
 
   const { longitude, latitude, year, month, day, hour, minute } = req.body;
-  
-  console.log('Extracted values:', { longitude, latitude, year, month, day, hour, minute });
 
   // Validate required parameters
   if (!longitude && longitude !== 0 || 
@@ -182,15 +147,15 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
   try {
     const response = await axios.post(
       `http://localhost:3000/api/v1/${lang}/planet-sign-house`, 
-      testPayload,
+      req.body,
       {
         headers: {
           'Accept-Language': lang
         }
       }
     );
-    
-    const interpretedData = response.data.map((p) => {
+
+    const interpretedData = response.data.data.map((p) => {
       try {
         const interpretationPath = path.resolve(
           __dirname,
