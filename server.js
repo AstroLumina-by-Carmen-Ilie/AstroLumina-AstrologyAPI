@@ -10,12 +10,12 @@ const API_KEY = process.env.API_KEY;
 const API_URL = process.env.API_URL;
 
 const app = express();
-const port = 3000;
+const port = 3031;
 
 app.use(express.json());
 app.use(cors({
   origin: [
-    'http://localhost:3000',
+    'http://localhost:3031',
     'http://localhost:5173',
     'https://astrolumina.netlify.app',
     'https://carmenilie.com',
@@ -146,7 +146,7 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
 
   try {
     const response = await axios.post(
-      `http://localhost:3000/api/v1/${lang}/planet-sign-house`, 
+      `http://localhost:${port}/api/v1/${lang}/planet-sign-house`, 
       req.body,
       {
         headers: {
