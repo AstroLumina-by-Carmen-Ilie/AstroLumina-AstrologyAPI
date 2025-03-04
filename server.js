@@ -109,7 +109,8 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   }
 });
 
-app.post('/api/v1/:lang/interpretations', async (req, res) => {
+app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
+  const type = req.params.type?.toLowerCase();
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
@@ -185,9 +186,24 @@ app.post('/api/v1/:lang/interpretations', async (req, res) => {
       }
     });
 
-    res.json({
-      data: interpretedData
-    });
+    const constantsPath = path.resolve(__dirname, 'constants.js');
+    const { natalElements, karmicElements } = require(constantsPath);
+    switch (type) {
+      case "natal":
+        res.json({
+          data: interpretedData.filter((p) => natalElements[lang].includes(p.planet))
+        });
+        break;
+      case "karmic":
+        res.json({
+          data: interpretedData.filter((p) => karmicElements[lang].includes(p.planet))
+        });
+        break;
+      default:
+        res.json({
+          data: interpretedData
+        });
+    }
   } catch (error) {
     console.error('Error getting data:', error);
     res.status(500).json({ error: 'Error getting data', details: error.message });

@@ -31,7 +31,18 @@ const planetOrder = [
   "Nodul Sud"
 ];
 
+const natalElements = {
+  "ro": ["Soare", "Luna", "Marte", "Venus", "Mercur"],
+  "en": ["Sun", "Moon", "Mars", "Venus", "Mercury"]
+}
+const karmicElements = {
+  "ro": ["Jupiter", "Saturn", "Uranus", "Neptun", "Pluto", "Ascendent", "Nodul Nord", "Nodul Sud", "Chiron", "Lilith", "Juno"],
+  "en": ["Jupiter","Saturn", "Uranus", "Neptune", "Pluto", "Ascendant", "North Node", "South Node", "Kiron", "Lilith", "Juno"]
+}
+
 module.exports = {
   planetOrder,
   zodiacOrder,
+  natalElements,
+  karmicElements
 }
