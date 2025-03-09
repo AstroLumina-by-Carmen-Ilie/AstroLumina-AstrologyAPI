@@ -5,6 +5,8 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const interpretationService = require('./services/interpretationService');
+const { planetOrder } = require('./constants');
 
 const API_KEY = process.env.API_KEY;
 const API_URL = process.env.API_URL;
@@ -15,11 +17,25 @@ const port = 3031;
 app.use(express.json());
 app.use(cors({
   origin: [
+    // Local development
     'http://localhost:3031',
     'http://localhost:5173',
-    'https://astrolumina.netlify.app',
+
+    // Cloudflare
+    'https://astrolumina.pages.dev',
+    'https://development.astrolumina.pages.dev',
+
+    // Live
     'https://carmenilie.com',
-    'https://www.carmenilie.com'
+    'https://www.carmenilie.com',
+
+    // Live
+    'https://carmenilieastrolog.com',
+    'https://www.carmenilieastrolog.com',
+
+    // Live
+    'https://astrolumina.com',
+    'https://www.astrolumina.com'
   ]
 }));
 
@@ -59,13 +75,10 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
   }
 
   const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
-  const utilitiesPath = path.resolve(__dirname, 'utilities.js');
   const constantsPath = path.resolve(__dirname, 'constants.js');
 
   try {
     const { translations: t } = require(translationsPath);
-    const { calculateSouthNode } = require(utilitiesPath);
-    const { planetOrder } = require(constantsPath);
     const response = await axios.post(API_URL + '/calc', req.body, {
       headers: {
         'x-api-key': API_KEY,
@@ -73,21 +86,7 @@ app.post('/api/v1/:lang/planet-sign-house', async (req, res) => {
       },
     });
 
-    const northNodeData = response.data.dynamicTexts.find(p => p.planet === 'Nodul Nord');
-    let southNodeData;
-    if (northNodeData) {
-      southNodeData = calculateSouthNode(northNodeData.sign, northNodeData.house);
-    }
-
-    let allData = [...response.data.dynamicTexts];
-    if (southNodeData) {
-      allData.push({
-        planet: "Nodul Sud",
-        sign: southNodeData.sign,
-        house: southNodeData.house
-      });
-    }
-
+    const allData = response.data.data;
     allData.sort((a, b) => {
       const indexA = planetOrder.indexOf(a.planet);
       const indexB = planetOrder.indexOf(b.planet);
@@ -156,22 +155,14 @@ app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
       }
     );
 
-    const interpretedData = response.data.data.map((p) => {
+    const interpretationPromises = response.data.data.map(async (p) => {
       try {
-        const interpretationPath = path.resolve(
-          __dirname,
-          'interpretations',
-          lang,
-          p.planet,
-          p.sign,
-          `${p.house}.js`
-        );
-        const interpretation = require(interpretationPath);
+        const interpretation = await interpretationService.getInterpretation(lang, p.planet, p.sign, p.house);
         return { 
           planet: p.planet,
           sign: p.sign,
           house: p.house,
-          interpretation: interpretation.interpretation 
+          interpretation: interpretation || '...' 
         };
       } catch (error) {
         console.error(
@@ -185,6 +176,8 @@ app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
         };
       }
     });
+
+    const interpretedData = await Promise.all(interpretationPromises);
 
     const constantsPath = path.resolve(__dirname, 'constants.js');
     const { natalElements, karmicElements } = require(constantsPath);

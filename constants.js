@@ -27,8 +27,8 @@ const planetOrder = [
   "Ascendant",
   "Lilith",
   "Chiron",
-  "Nodul Nord",
-  "Nodul Sud"
+  "North Node",
+  "South Node"
 ];
 
 const natalElements = {
@@ -36,8 +36,8 @@ const natalElements = {
   "en": ["Sun", "Moon", "Mars", "Venus", "Mercury"]
 }
 const karmicElements = {
-  "ro": ["Jupiter", "Saturn", "Uranus", "Neptun", "Pluto", "Ascendent", "Nodul Nord", "Nodul Sud", "Chiron", "Lilith", "Juno"],
-  "en": ["Jupiter","Saturn", "Uranus", "Neptune", "Pluto", "Ascendant", "North Node", "South Node", "Kiron", "Lilith", "Juno"]
+  "ro": ["Jupiter", "Saturn", "Uranus", "Neptun", "Pluto", "Ascendent", "Nodul Nord", "Nodul Sud", "Chiron", "Lilith"],
+  "en": ["Jupiter","Saturn", "Uranus", "Neptune", "Pluto", "Ascendant", "North Node", "South Node", "Chiron", "Lilith"]
 }
 
 module.exports = {
