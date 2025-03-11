@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -13,6 +14,18 @@ const API_URL = process.env.API_URL;
 
 const app = express();
 const port = 3031;
+
+// Configure rate limiter: maximum of 20 requests per minute
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // limit each IP to 20 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: 'Too many requests from this IP, please try again after a minute'
+});
+
+// Apply the rate limiter to all routes
+app.use(limiter);
 
 app.use(express.json());
 app.use(cors({
