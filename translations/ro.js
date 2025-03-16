@@ -34,4 +34,27 @@ export const translations = {
         "Pisces": "Pesti",
     },
     "House": "Casa",
+    "aspects": {
+        "conjunction": "Conjuncție",
+        "semi-sextile": "Semisextil",
+        "biquintile": "Novil",
+        "semi-square": "Semicuadratură",
+        "sextile": "Sextil",
+        "quintile": "Quintil",
+        "square": "Cuadratură",
+        "trine": "Trigon",
+        "sesquiquadrate": "Trioctil",
+        "quincunx": "Inconjuncție",
+        "opposition": "Opoziție",
+    },
+    "lunar_phases": {
+        // "new_moon": "Luna Nouă",
+        // "waxing_crescent": "Luna Crește",
+        // "first_quarter": "Luna Prima",
+        // "waxing_gibbous": "Luna Crește",
+        // "full_moon": "Luna Plină",
+        // "waning_gibbous": "Luna Crește",
+        // "last_quarter": "Luna Ultima",
+        // "waning_crescent": "Luna Crește"
+    }
 }
