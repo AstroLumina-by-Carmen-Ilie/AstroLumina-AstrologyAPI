@@ -7,10 +7,13 @@
     "start": "nodemon server.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.4.7",
     "express": "^4.18.2",
-    "nodemon": "^3.1.9"
+    "express-rate-limit": "^7.5.0",
+    "nodemon": "^3.1.9",
+    "geo-tz": "^8.1.3"
   }
 }
