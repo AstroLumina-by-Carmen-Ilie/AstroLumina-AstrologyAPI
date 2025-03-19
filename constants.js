@@ -39,49 +39,53 @@ const unused_aspects = [
   { "name": "quincunx", "orb": 4 }
 ];
 
-const zodiacOrder = [
-  "Aries",
-  "Taurus",
-  "Gemini",
-  "Cancer",
-  "Leo",
-  "Virgo",
-  "Libra",
-  "Scorpio",
-  "Sagittarius",
-  "Capricorn",
-  "Aquarius",
-  "Pisces"
-];
-
-const planetOrder = [
-  "Sun",
-  "Moon",
-  "Mars",
-  "Venus",
-  "Mercury",
-  "Saturn",
-  "Jupiter",
-  "Uranus",
-  "Neptune",
-  "Pluto",
-  "Ascendant",
-  "Descendant",
-  "Lilith",
-  "Chiron",
-  "North Node",
-  "South Node",
-  "Medium Coeli",
-  "Imum Coeli"
-];
-
 const natalElements = {
-  "ro": ["Soare", "Luna", "Marte", "Venus", "Mercur"],
-  "en": ["Sun", "Moon", "Mars", "Venus", "Mercury"]
+  "ro": [
+    "Soare",
+    "Luna",
+    "Marte",
+    "Venus",
+    "Mercur"
+  ],
+  "en": [
+    "Sun",
+    "Moon",
+    "Mars",
+    "Venus",
+    "Mercury"
+  ]
 }
 const karmicElements = {
-  "ro": ["Jupiter", "Saturn", "Uranus", "Neptun", "Pluto", "Ascendent", "Nodul Nord", "Nodul Sud", "Chiron", "Lilith"],
-  "en": ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Ascendant", "North Node", "South Node", "Chiron", "Lilith"]
+  "ro": [
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptun",
+    "Pluto",
+    "Ascendent",
+    "Descendent",
+    "Nodul Nord",
+    "Nodul Sud",
+    "Chiron",
+    "Lilith",
+    "Mijlocul Cerului",
+    "Fundul Cerului"
+  ],
+  "en": [
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptune",
+    "Pluto",
+    "Ascendant",
+    "Descendant",
+    "North Node",
+    "South Node",
+    "Chiron",
+    "Lilith",
+    "Medium Coeli",
+    "Imum Coeli"
+  ]
 }
 
 module.exports = {
@@ -89,8 +93,6 @@ module.exports = {
   unused_planets,
   used_aspects,
   unused_aspects,
-  planetOrder,
-  zodiacOrder,
   natalElements,
   karmicElements
 }

@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const { find: timezone } = require('geo-tz')
-const { used_planets, unused_planets, used_aspects, unused_aspects, planetOrder } = require('./constants');
+const { used_planets, used_aspects, natalElements, karmicElements } = require('./constants');
 const interpretationService = require('./services/interpretationService');
 
 const ASTROLOGER_API_KEY = process.env.ASTROLOGER_API_KEY;
@@ -153,6 +153,7 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
   }
 });
 
+// Route to get birth data
 app.post('/api/v1/:lang/astral-data', async (req, res) => {
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
@@ -160,6 +161,9 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
   if (!validLanguages.includes(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
+
+  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
+  const { translations: t } = require(translationsPath);
 
   try {
     const options = {
@@ -182,13 +186,56 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
         return response.data.data.subject[key];
       }
       return null;
-    }).filter(Boolean);
+    })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const indexA = used_planets.indexOf(a.name);
+        const indexB = used_planets.indexOf(b.name);
+        return indexA - indexB;
+      })
+      .map((planet) => ({
+        ...planet,
+        name: t.planets[planet.name],
+        house: t.houses[planet.house],
+        sign: t.signs[planet.sign],
+        element: t.elements[planet.element]
+      }));
 
-    allData.sort((a, b) => {
-      const indexA = used_planets.indexOf(a.name);
-      const indexB = used_planets.indexOf(b.name);
-      return indexA - indexB;
-    });
+    res.json(allData);
+  } catch (error) {
+    console.error('Error getting data:', error);
+    res.status(500).json({ error: 'Error getting data', details: error.message });
+  }
+});
+
+// Route to get lunar data
+app.post('/api/v1/:lang/lunar-data', async (req, res) => {
+  const lang = req.params.lang?.toLowerCase();
+  const validLanguages = ['ro', 'en'];
+
+  if (!validLanguages.includes(lang)) {
+    return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
+  }
+
+  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
+  const { translations: t } = require(translationsPath);
+
+  try {
+    const options = {
+      method: 'POST',
+      url: `http://localhost:${port}/api/v1/${lang}/birth-data`,
+      headers: {
+        'Accept-Language': lang
+      },
+      data: req.body
+    };
+
+    const response = await axios.request(options);
+
+    const allData = {
+      ...response.data.data.subject['lunar_phase'],
+      moon_phase_name: t.lunar_phases[response.data.data.subject['lunar_phase'].moon_phase_name]
+    };
 
     res.json(allData);
   } catch (error) {
@@ -198,7 +245,7 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
 });
 
 // Route to get interpretations for a specific type
-app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
+app.post('/api/v1/:lang/astral-interpretations/:type?', async (req, res) => {
   const type = req.params.type?.toLowerCase();
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
@@ -208,23 +255,24 @@ app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
   }
 
   try {
-    const response = await axios.post(
-      `http://localhost:${port}/api/v1/${lang}/planet-sign-house`,
-      req.body,
-      {
-        headers: {
-          'Accept-Language': lang
-        }
-      }
-    );
+    const options = {
+      method: 'POST',
+      url: `http://localhost:${port}/api/v1/${lang}/astral-data`,
+      headers: {
+        'Accept-Language': lang
+      },
+      data: req.body
+    };
 
-    const interpretationPromises = response.data.data.map(async (p) => {
+    const response = await axios.request(options);
+
+    const interpretationPromises = response.data.map(async (p) => {
       try {
-        const interpretation = await interpretationService.getInterpretation(lang, p.planet, p.sign, p.house);
+        const interpretation = await interpretationService.getInterpretation(
+          lang, p.name, p.sign, p.house
+        );
         return {
-          planet: p.planet,
-          sign: p.sign,
-          house: p.house,
+          ...p,
           interpretation: interpretation || '...'
         };
       } catch (error) {
@@ -232,9 +280,7 @@ app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
           `Error loading interpretation for ${p.planet} in ${p.sign}, ${p.house}:`, error
         );
         return {
-          planet: p.planet,
-          sign: p.sign,
-          house: p.house,
+          ...p,
           interpretation: '...'
         };
       }
@@ -242,23 +288,16 @@ app.post('/api/v1/:lang/interpretations/:type?', async (req, res) => {
 
     const interpretedData = await Promise.all(interpretationPromises);
 
-    const constantsPath = path.resolve(__dirname, 'constants.js');
-    const { natalElements, karmicElements } = require(constantsPath);
     switch (type) {
       case "natal":
-        res.json({
-          data: interpretedData.filter((p) => natalElements[lang].includes(p.planet))
-        });
+        res.json(interpretedData.filter((p) => natalElements[lang].includes(p.name)));
         break;
       case "karmic":
-        res.json({
-          data: interpretedData.filter((p) => karmicElements[lang].includes(p.planet))
-        });
+        res.json(interpretedData.filter((p) => karmicElements[lang].includes(p.name)));
         break;
       default:
-        res.json({
-          data: interpretedData
-        });
+        res.json(interpretedData);
+        break;
     }
   } catch (error) {
     console.error('Error getting data:', error);
