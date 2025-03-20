@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const { find: timezone } = require('geo-tz')
-const { used_planets, used_aspects, natalElements, karmicElements } = require('./constants');
+const { used_planets, used_aspects, natal_elements, karmic_elements, sign_order } = require('./constants');
 const interpretationService = require('./services/interpretationService');
 
 const ASTROLOGER_API_KEY = process.env.ASTROLOGER_API_KEY;
@@ -290,10 +290,10 @@ app.post('/api/v1/:lang/astral-interpretations/:type?', async (req, res) => {
 
     switch (type) {
       case "natal":
-        res.json(interpretedData.filter((p) => natalElements[lang].includes(p.name)));
+        res.json(interpretedData.filter((p) => natal_elements[lang].includes(p.name)));
         break;
       case "karmic":
-        res.json(interpretedData.filter((p) => karmicElements[lang].includes(p.name)));
+        res.json(interpretedData.filter((p) => karmic_elements[lang].includes(p.name)));
         break;
       default:
         res.json(interpretedData);

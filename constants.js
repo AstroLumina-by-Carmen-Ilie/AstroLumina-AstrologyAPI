@@ -39,7 +39,22 @@ const unused_aspects = [
   { "name": "quincunx", "orb": 4 }
 ];
 
-const natalElements = {
+const sign_order = [
+  "Aries",
+  "Taurus",
+  "Gemini",
+  "Cancer",
+  "Leo",
+  "Virgo",
+  "Libra",
+  "Scorpio",
+  "Sagittarius",
+  "Capricorn",
+  "Aquarius",
+  "Pisces"
+];
+
+const natal_elements = {
   "ro": [
     "Soare",
     "Luna",
@@ -55,7 +70,7 @@ const natalElements = {
     "Mercury"
   ]
 }
-const karmicElements = {
+const karmic_elements = {
   "ro": [
     "Jupiter",
     "Saturn",
@@ -93,6 +108,7 @@ module.exports = {
   unused_planets,
   used_aspects,
   unused_aspects,
-  natalElements,
-  karmicElements
+  sign_order,
+  natal_elements,
+  karmic_elements
 }
