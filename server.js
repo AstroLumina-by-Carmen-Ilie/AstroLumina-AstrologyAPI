@@ -114,7 +114,7 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
     const { translations: t } = require(translationsPath);
     const options = {
       method: 'POST',
-      url: ASTROLOGER_API_URL + '/api/v4/natal-aspects-data',
+      url: ASTROLOGER_API_URL + '/api/v4/birth-chart',
       headers: {
         'x-rapidapi-key': ASTROLOGER_API_KEY,
         'x-rapidapi-host': ASTROLOGER_API_HOST,
@@ -138,6 +138,8 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
           perspective_type: "Apparent Geocentric",
           houses_system_identifier: "P"
         },
+        theme: "classic",
+        wheel_only: false,
         active_points: used_planets,
         active_aspects: used_aspects
       }
@@ -177,13 +179,13 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
 
     const response = await axios.request(options);
 
-    const allData = Object.keys(response.data.data.subject).map((key) => {
+    const allData = Object.keys(response.data.data).map((key) => {
       if (
-        response.data.data.subject[key] !== null &&
-        typeof response.data.data.subject[key] === 'object' &&
-        used_planets.indexOf(response.data.data.subject[key].name) > -1
+        response.data.data[key] !== null &&
+        typeof response.data.data[key] === 'object' &&
+        used_planets.indexOf(response.data.data[key].name) > -1
       ) {
-        return response.data.data.subject[key];
+        return response.data.data[key];
       }
       return null;
     })
