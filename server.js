@@ -108,10 +108,7 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
     }
   }
 
-  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
-
   try {
-    const { translations: t } = require(translationsPath);
     const options = {
       method: 'POST',
       url: ASTROLOGER_API_URL + '/api/v4/birth-chart',
@@ -210,6 +207,36 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
   }
 });
 
+// Route to get birth chart
+app.post('/api/v1/:lang/astral-chart', async (req, res) => {
+  const lang = req.params.lang?.toLowerCase();
+  const validLanguages = ['ro', 'en'];
+
+  if (!validLanguages.includes(lang)) {
+    return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
+  }
+
+  try {
+    const options = {
+      method: 'POST',
+      url: `http://localhost:${port}/api/v1/${lang}/birth-data`,
+      headers: {
+        'Accept-Language': lang
+      },
+      data: req.body
+    };
+
+    const response = await axios.request(options);
+
+    const allData = response.data.chart;
+
+    res.json(allData);
+  } catch (error) {
+    console.error('Error getting data:', error);
+    res.status(500).json({ error: 'Error getting data', details: error.message });
+  }
+});
+
 // Route to get lunar data
 app.post('/api/v1/:lang/lunar-data', async (req, res) => {
   const lang = req.params.lang?.toLowerCase();
@@ -235,8 +262,8 @@ app.post('/api/v1/:lang/lunar-data', async (req, res) => {
     const response = await axios.request(options);
 
     const allData = {
-      ...response.data.data.subject['lunar_phase'],
-      moon_phase_name: t.lunar_phases[response.data.data.subject['lunar_phase'].moon_phase_name]
+      ...response.data.data['lunar_phase'],
+      moon_phase_name: t.lunar_phases[response.data.data['lunar_phase'].moon_phase_name]
     };
 
     res.json(allData);
