@@ -36,6 +36,7 @@ app.use(cors({
     'http://localhost:5173',
 
     // Cloudflare
+    'https://feature-ios-compatibility.astrolumina.pages.dev',
     'https://astrolumina.pages.dev',
     'https://development.astrolumina.pages.dev',
 
