@@ -8,7 +8,6 @@ const path = require('path');
 const cors = require('cors');
 const { find: timezone } = require('geo-tz')
 const { used_planets, used_aspects, natal_elements, karmic_elements, sign_order } = require('./constants');
-const interpretationService = require('./services/interpretationService');
 
 const ASTROLOGER_API_KEY = process.env.ASTROLOGER_API_KEY;
 const ASTROLOGER_API_URL = process.env.ASTROLOGER_API_URL;
@@ -273,7 +272,7 @@ app.post('/api/v1/:lang/lunar-data', async (req, res) => {
   }
 });
 
-// Route to get interpretations for a specific type
+// Route to get astral data without interpretations
 app.post('/api/v1/:lang/astral-interpretations/:type?', async (req, res) => {
   const type = req.params.type?.toLowerCase();
   const lang = req.params.lang?.toLowerCase();
@@ -294,38 +293,17 @@ app.post('/api/v1/:lang/astral-interpretations/:type?', async (req, res) => {
     };
 
     const response = await axios.request(options);
-
-    const interpretationPromises = response.data.map(async (p) => {
-      try {
-        const interpretation = await interpretationService.getInterpretation(
-          lang, p.name, p.sign, p.house
-        );
-        return {
-          ...p,
-          interpretation: interpretation || '...'
-        };
-      } catch (error) {
-        console.error(
-          `Error loading interpretation for ${p.planet} in ${p.sign}, ${p.house}:`, error
-        );
-        return {
-          ...p,
-          interpretation: '...'
-        };
-      }
-    });
-
-    const interpretedData = await Promise.all(interpretationPromises);
+    const allData = response.data;
 
     switch (type) {
       case "natal":
-        res.json(interpretedData.filter((p) => natal_elements[lang].includes(p.name)));
+        res.json(allData.filter((p) => natal_elements[lang].includes(p.name)));
         break;
       case "karmic":
-        res.json(interpretedData.filter((p) => karmic_elements[lang].includes(p.name)));
+        res.json(allData.filter((p) => karmic_elements[lang].includes(p.name)));
         break;
       default:
-        res.json(interpretedData);
+        res.json(allData);
         break;
     }
   } catch (error) {
