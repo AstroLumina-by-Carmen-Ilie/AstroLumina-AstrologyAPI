@@ -100,7 +100,7 @@ const getPointType = (name) => {
     return 'planet';
   }
   if (used_astral_points.includes(name)) {
-    return 'astrological_point';
+    return 'astral_point';
   }
   if (used_asteroids.includes(name)) {
     return 'asteroid';
@@ -198,15 +198,15 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
     };
 
     const response = await axios.request(options);
-    const filteredData = response.data.chart_data.subject;
 
-    const allData = Object.keys(filteredData).map((key) => {
+    const cosmicElements = response.data.chart_data.subject;
+    const cosmicElementsFilteredData = Object.keys(cosmicElements).map((key) => {
       if (
-        filteredData[key] !== null &&
-        typeof filteredData[key] === 'object' &&
-        used_elements.indexOf(filteredData[key].name) > -1
+        cosmicElements[key] !== null &&
+        typeof cosmicElements[key] === 'object' &&
+        used_elements.indexOf(cosmicElements[key].name) > -1
       ) {
-        return filteredData[key];
+        return cosmicElements[key];
       }
       return null;
     })
@@ -221,7 +221,7 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
 
         return {
           ...planet,
-          point_type: t.types[pointType],
+          point_type: t.types?.[pointType] ?? pointType,
           name: t.planets[planet.name],
           house: t.houses[planet.house],
           sign: t.signs[planet.sign],
@@ -229,17 +229,49 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
         };
       });
 
-      switch (type) {
-        case "natal":
-          res.json(allData.filter((p) => natal_elements[lang].includes(p.name)));
-          break;
-        case "karmic":
-          res.json(allData.filter((p) => karmic_elements[lang].includes(p.name)));
-          break;
-        default:
-          res.json(allData);
-          break;
-      }
+    const cosmicAspects = response.data.chart_data.aspects;
+    const cosmicAspectsFilteredData = cosmicAspects.map((a) => ({
+      ...a,
+      p1_name: t.planets?.[a.p1_name] ?? a.p1_name,
+      p2_name: t.planets?.[a.p2_name] ?? a.p2_name,
+      aspect: t.aspects?.[a.aspect] ?? a.aspect
+    }));
+
+
+    let allData = {
+      "cosmic_elements": cosmicElementsFilteredData,
+      "cosmic_aspects": cosmicAspectsFilteredData
+    };
+    switch (type) {
+      case "natal":
+        allData = {
+          "cosmic_elements": cosmicElementsFilteredData.filter(
+            (p) =>
+              natal_elements[lang].includes(p.name)
+          ),
+          "cosmic_aspects": cosmicAspectsFilteredData.filter(
+            (a) =>
+              natal_elements[lang].includes(a.p1_name) &&
+              natal_elements[lang].includes(a.p2_name)
+          )
+        };
+        break;
+      case "karmic":
+        allData = {
+          "cosmic_elements": cosmicElementsFilteredData.filter(
+            (p) => karmic_elements[lang].includes(p.name)
+          ),
+          "cosmic_aspects": cosmicAspectsFilteredData.filter(
+            (a) =>
+              (karmic_elements[lang].includes(a.p1_name) && (karmic_elements[lang].includes(a.p2_name) || natal_elements[lang].includes(a.p2_name))) ||
+              (karmic_elements[lang].includes(a.p2_name) && (karmic_elements[lang].includes(a.p1_name) || natal_elements[lang].includes(a.p1_name)))
+          )
+        };
+        break;
+      default:
+        break;
+    }
+    res.json(allData);
   } catch (error) {
     console.error('Error getting data:', error);
     res.status(500).json({ error: 'Error getting data', details: error.message });
@@ -315,6 +347,4 @@ app.post('/api/v2/:lang/lunar-data', async (req, res) => {
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-  const pidPath = path.resolve(__dirname, 'server.pid');
-  fs.writeFileSync(pidPath, process.pid.toString());
 });

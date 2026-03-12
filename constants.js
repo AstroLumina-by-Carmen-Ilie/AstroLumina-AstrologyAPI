@@ -69,14 +69,14 @@ const unused_elements = [
 
 const used_aspects = [
   { "name": "conjunction", "orb": 8 },
-  { "name": "semi-sextile", "orb": 2 },
-  { "name": "semi-square", "orb": 2 },
-  { "name": "sextile", "orb": 6 },
+  { "name": "semi-sextile", "orb": 8 },
+  { "name": "sextile", "orb": 8 },
   { "name": "square", "orb": 8 },
   { "name": "trine", "orb": 8 },
   { "name": "opposition", "orb": 8 }
 ];
 const unused_aspects = [
+  { "name": "semi-square", "orb": 2 },
   { "name": "biquintile", "orb": 2 },
   { "name": "quintile", "orb": 2 },
   { "name": "sesquiquadrate", "orb": 2 },

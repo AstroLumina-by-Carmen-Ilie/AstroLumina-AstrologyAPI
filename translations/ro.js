@@ -1,7 +1,7 @@
 export const translations = {
   "types": {
     "planet": "Planetă",
-    "astrological_point": "Punct virtual",
+    "astral_point": "Punct virtual",
     "asteroid": "Asteroid",
     "star": "Stea fixă",
   },
