@@ -7,7 +7,16 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const { find: timezone } = require('geo-tz')
-const { used_planets, used_aspects, natal_elements, karmic_elements, sign_order } = require('./constants');
+const {
+  used_planets,
+  used_astral_points,
+  used_asteroids,
+  used_stars,
+  used_elements,
+  used_aspects,
+  natal_elements,
+  karmic_elements
+} = require('./constants');
 
 const ASTROLOGER_API_KEY = process.env.ASTROLOGER_API_KEY;
 const ASTROLOGER_API_URL = process.env.ASTROLOGER_API_URL;
@@ -86,8 +95,24 @@ const validateData = (req) => {
   return 0;
 }
 
-// Route to get natal data
-app.post('/api/v1/:lang/birth-data', async (req, res) => {
+const getPointType = (name) => {
+  if (used_planets.includes(name)) {
+    return 'planet';
+  }
+  if (used_astral_points.includes(name)) {
+    return 'astrological_point';
+  }
+  if (used_asteroids.includes(name)) {
+    return 'asteroid';
+  }
+  if (used_stars.includes(name)) {
+    return 'star';
+  }
+  return 'astrological_point';
+};
+
+// Get full astral data from Astrologer
+app.post('/api/v2/:lang/birth-data', async (req, res) => {
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
@@ -110,7 +135,7 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
   try {
     const options = {
       method: 'POST',
-      url: ASTROLOGER_API_URL + '/api/v4/birth-chart',
+      url: ASTROLOGER_API_URL + '/api/v5/chart/birth-chart',
       headers: {
         'x-rapidapi-key': ASTROLOGER_API_KEY,
         'x-rapidapi-host': ASTROLOGER_API_HOST,
@@ -129,15 +154,13 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
           city: city,
           nation: nation,
           timezone: timezone(latitude, longitude)[0],
-          zodiac_type: "Tropic",
-          sidereal_mode: null,
+          zodiac_type: "Tropical",
           perspective_type: "Apparent Geocentric",
           houses_system_identifier: "P"
         },
-        theme: "classic",
-        wheel_only: false,
-        active_points: used_planets,
-        active_aspects: used_aspects
+        active_points: used_elements,
+        active_aspects: used_aspects,
+        theme: "light"
       }
     };
 
@@ -151,9 +174,10 @@ app.post('/api/v1/:lang/birth-data', async (req, res) => {
   }
 });
 
-// Route to get birth data
-app.post('/api/v1/:lang/astral-data', async (req, res) => {
+// Get filtered astral data
+app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
   const lang = req.params.lang?.toLowerCase();
+  const type = req.params.type?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
   if (!validLanguages.includes(lang)) {
@@ -166,7 +190,7 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
   try {
     const options = {
       method: 'POST',
-      url: `http://localhost:${port}/api/v1/${lang}/birth-data`,
+      url: `http://localhost:${port}/api/v2/${lang}/birth-data`,
       headers: {
         'Accept-Language': lang
       },
@@ -174,40 +198,56 @@ app.post('/api/v1/:lang/astral-data', async (req, res) => {
     };
 
     const response = await axios.request(options);
+    const filteredData = response.data.chart_data.subject;
 
-    const allData = Object.keys(response.data.data).map((key) => {
+    const allData = Object.keys(filteredData).map((key) => {
       if (
-        response.data.data[key] !== null &&
-        typeof response.data.data[key] === 'object' &&
-        used_planets.indexOf(response.data.data[key].name) > -1
+        filteredData[key] !== null &&
+        typeof filteredData[key] === 'object' &&
+        used_elements.indexOf(filteredData[key].name) > -1
       ) {
-        return response.data.data[key];
+        return filteredData[key];
       }
       return null;
     })
       .filter(Boolean)
       .sort((a, b) => {
-        const indexA = used_planets.indexOf(a.name);
-        const indexB = used_planets.indexOf(b.name);
+        const indexA = used_elements.indexOf(a.name);
+        const indexB = used_elements.indexOf(b.name);
         return indexA - indexB;
       })
-      .map((planet) => ({
-        ...planet,
-        name: t.planets[planet.name],
-        house: t.houses[planet.house],
-        sign: t.signs[planet.sign],
-        element: t.elements[planet.element]
-      }));
+      .map((planet) => {
+        const pointType = getPointType(planet.name);
 
-    res.json(allData);
+        return {
+          ...planet,
+          point_type: t.types[pointType],
+          name: t.planets[planet.name],
+          house: t.houses[planet.house],
+          sign: t.signs[planet.sign],
+          element: t.elements[planet.element]
+        };
+      });
+
+      switch (type) {
+        case "natal":
+          res.json(allData.filter((p) => natal_elements[lang].includes(p.name)));
+          break;
+        case "karmic":
+          res.json(allData.filter((p) => karmic_elements[lang].includes(p.name)));
+          break;
+        default:
+          res.json(allData);
+          break;
+      }
   } catch (error) {
     console.error('Error getting data:', error);
     res.status(500).json({ error: 'Error getting data', details: error.message });
   }
 });
 
-// Route to get birth chart
-app.post('/api/v1/:lang/astral-chart', async (req, res) => {
+// Get filtered astral SVG chart
+app.post('/api/v2/:lang/astral-chart', async (req, res) => {
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
@@ -218,7 +258,7 @@ app.post('/api/v1/:lang/astral-chart', async (req, res) => {
   try {
     const options = {
       method: 'POST',
-      url: `http://localhost:${port}/api/v1/${lang}/birth-data`,
+      url: `http://localhost:${port}/api/v2/${lang}/birth-data`,
       headers: {
         'Accept-Language': lang
       },
@@ -226,7 +266,6 @@ app.post('/api/v1/:lang/astral-chart', async (req, res) => {
     };
 
     const response = await axios.request(options);
-
     const allData = response.data.chart;
 
     res.json(allData);
@@ -236,8 +275,8 @@ app.post('/api/v1/:lang/astral-chart', async (req, res) => {
   }
 });
 
-// Route to get lunar data
-app.post('/api/v1/:lang/lunar-data', async (req, res) => {
+// Get filtered lunar data
+app.post('/api/v2/:lang/lunar-data', async (req, res) => {
   const lang = req.params.lang?.toLowerCase();
   const validLanguages = ['ro', 'en'];
 
@@ -251,7 +290,7 @@ app.post('/api/v1/:lang/lunar-data', async (req, res) => {
   try {
     const options = {
       method: 'POST',
-      url: `http://localhost:${port}/api/v1/${lang}/birth-data`,
+      url: `http://localhost:${port}/api/v2/${lang}/birth-data`,
       headers: {
         'Accept-Language': lang
       },
@@ -259,53 +298,14 @@ app.post('/api/v1/:lang/lunar-data', async (req, res) => {
     };
 
     const response = await axios.request(options);
+    const filteredData = response.data.chart_data.subject;
 
     const allData = {
-      ...response.data.data['lunar_phase'],
-      moon_phase_name: t.lunar_phases[response.data.data['lunar_phase'].moon_phase_name]
+      ...filteredData['lunar_phase'],
+      moon_phase_name: t.lunar_phases[filteredData['lunar_phase'].moon_phase_name]
     };
 
     res.json(allData);
-  } catch (error) {
-    console.error('Error getting data:', error);
-    res.status(500).json({ error: 'Error getting data', details: error.message });
-  }
-});
-
-// Route to get astral data without interpretations
-app.post('/api/v1/:lang/astral-interpretations/:type?', async (req, res) => {
-  const type = req.params.type?.toLowerCase();
-  const lang = req.params.lang?.toLowerCase();
-  const validLanguages = ['ro', 'en'];
-
-  if (!validLanguages.includes(lang)) {
-    return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
-  }
-
-  try {
-    const options = {
-      method: 'POST',
-      url: `http://localhost:${port}/api/v1/${lang}/astral-data`,
-      headers: {
-        'Accept-Language': lang
-      },
-      data: req.body
-    };
-
-    const response = await axios.request(options);
-    const allData = response.data;
-
-    switch (type) {
-      case "natal":
-        res.json(allData.filter((p) => natal_elements[lang].includes(p.name)));
-        break;
-      case "karmic":
-        res.json(allData.filter((p) => karmic_elements[lang].includes(p.name)));
-        break;
-      default:
-        res.json(allData);
-        break;
-    }
   } catch (error) {
     console.error('Error getting data:', error);
     res.status(500).json({ error: 'Error getting data', details: error.message });

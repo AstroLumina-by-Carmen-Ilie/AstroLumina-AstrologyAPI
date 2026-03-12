@@ -8,20 +8,64 @@ const used_planets = [
   "Saturn",
   "Uranus",
   "Neptune",
-  "Pluto",
+  "Pluto"
+];
+const used_astral_points = [
   "Ascendant",
   "Descendant",
-  "True_Node",
-  "True_South_Node",
-  "Chiron",
+  "True_North_Lunar_Node",
+  "True_South_Lunar_Node",
   "Mean_Lilith",
   "Medium_Coeli",
   "Imum_Coeli"
 ];
-const unused_planets = [
-  "Mean_Node",
-  "Mean_South_Node"
-]
+const used_asteroids = [
+  "Chiron",
+  "Pholus",
+  "Ceres",
+  "Pallas",
+  "Juno",
+  "Vesta",
+  "Eris",
+  "Sedna",
+  "Haumea",
+  "Makemake",
+  "Ixion",
+  "Orcus",
+  "Quaoar",
+  "Regulus"
+];
+const used_stars = [
+  "Spica"
+];
+const used_elements = [
+  ...used_planets,
+  ...used_astral_points,
+  ...used_asteroids,
+  ...used_stars
+];
+
+const unused_planets = [];
+const unused_astral_points = [
+  "Mean_North_Lunar_Node",
+  "Mean_South_Lunar_Node",
+  "True_Lilith",
+  "Earth",
+  "Pars_Fortunae",
+  "Pars_Spiritus",
+  "Pars_Amoris",
+  "Pars_Fidei",
+  "Vertex",
+  "Anti_Vertex"
+];
+const unused_asteroids = [];
+const unused_stars = [];
+const unused_elements = [
+  ...unused_planets,
+  ...unused_astral_points,
+  ...unused_asteroids,
+  ...unused_stars
+];
 
 const used_aspects = [
   { "name": "conjunction", "orb": 8 },
@@ -105,7 +149,11 @@ const karmic_elements = {
 
 module.exports = {
   used_planets,
-  unused_planets,
+  used_astral_points,
+  used_asteroids,
+  used_stars,
+  used_elements,
+  unused_elements,
   used_aspects,
   unused_aspects,
   sign_order,
