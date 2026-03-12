@@ -32,10 +32,10 @@ const used_asteroids = [
   "Makemake",
   "Ixion",
   "Orcus",
-  "Quaoar",
-  "Regulus"
+  "Quaoar"
 ];
 const used_stars = [
+  "Regulus",
   "Spica"
 ];
 const used_elements = [
@@ -84,7 +84,8 @@ const unused_aspects = [
 ];
 
 const planet_symbols = {
-  'ro': {
+  ro: {
+    // Planete
     'Soare': '☉',
     'Luna': '☽',
     'Mercur': '☿',
@@ -95,16 +96,40 @@ const planet_symbols = {
     'Uranus': '♅',
     'Neptun': '♆',
     'Pluto': '♇',
+
+    // Puncte
     'Ascendent': '↑',
     'Descendent': '↓',
     'Lilith': '⚸',
-    'Chiron': '⚷',
     'Nodul Nord': '☊',
     'Nodul Sud': '☋',
     'Mijlocul Cerului': 'MC',
-    'Fundul Cerului': 'IC'
+    'Fundul Cerului': 'IC',
+
+    // Asteroizi / alte puncte
+    'Chiron': '⚷',
+    'Ceres': '⚳',
+    'Pallas': '⚴',
+    'Juno': '⚵',
+    'Vesta': '⚶',
+
+    'Pholus': '⯛',
+    'Eris': '⯰',
+    'Sedna': '⯲',
+
+    'Haumea': '🝻',
+    'Makemake': '🝼',
+    'Ixion': null,
+    'Orcus': '🝿',
+    'Quaoar': '🝾',
+
+    // Stele fixe
+    'Regulus': 'Reg',
+    'Spica': 'Sp'
   },
-  'en': {
+
+  en: {
+    // Planets
     'Sun': '☉',
     'Moon': '☽',
     'Mercury': '☿',
@@ -115,15 +140,37 @@ const planet_symbols = {
     'Uranus': '♅',
     'Neptune': '♆',
     'Pluto': '♇',
+
+    // Points
     'Ascendant': '↑',
     'Descendant': '↓',
     'Lilith': '⚸',
-    'Kiron': '⚷',
     'North Node': '☊',
     'South Node': '☋',
     'Medium Coeli': 'MC',
-    'Imum Coeli': 'IC'
-  },
+    'Imum Coeli': 'IC',
+
+    // Asteroids / other points
+    'Chiron': '⚷',
+    'Ceres': '⚳',
+    'Pallas': '⚴',
+    'Juno': '⚵',
+    'Vesta': '⚶',
+
+    'Pholus': '⯛',
+    'Eris': '⯰',
+    'Sedna': '⯲',
+
+    'Haumea': '🝻',
+    'Makemake': '🝼',
+    'Ixion': null,
+    'Orcus': '🝿',
+    'Quaoar': '🝾',
+
+    // Fixed stars
+    'Regulus': 'Reg',
+    'Spica': 'Sp'
+  }
 };
 
 const sign_order = [
@@ -199,6 +246,7 @@ module.exports = {
   unused_elements,
   used_aspects,
   unused_aspects,
+   planet_symbols,
   sign_order,
   natal_elements,
   karmic_elements
