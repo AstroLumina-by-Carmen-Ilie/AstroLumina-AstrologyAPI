@@ -291,7 +291,7 @@ app.post('/api/v2/:lang/astral-chart', async (req, res) => {
 
   const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
 
-  validation = validateData(req);
+  let validation = validateData(req);
   if (validation !== 0) {
     switch (validation) {
       case 21:
