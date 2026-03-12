@@ -287,14 +287,48 @@ app.post('/api/v2/:lang/astral-chart', async (req, res) => {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
 
+  const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
+
+  validation = validateData(req);
+  if (validation !== 0) {
+    switch (validation) {
+      case 21:
+        return res.status(400).json({ error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute, city, nation, name' });
+      case 22:
+        return res.status(400).json({ error: 'Invalid parameter values. Please check the ranges and types of all parameters.' });
+    }
+  }
+
   try {
     const options = {
       method: 'POST',
-      url: `http://localhost:${port}/api/v2/${lang}/birth-data`,
+      url: ASTROLOGER_API_URL + '/api/v5/chart/birth-chart',
       headers: {
-        'Accept-Language': lang
+        'x-rapidapi-key': ASTROLOGER_API_KEY,
+        'x-rapidapi-host': ASTROLOGER_API_HOST,
+        'Content-Type': 'application/json'
       },
-      data: req.body
+      data: {
+        subject: {
+          name: name,
+          year: year,
+          month: month,
+          day: day,
+          hour: hour,
+          minute: minute,
+          longitude: longitude,
+          latitude: latitude,
+          city: city,
+          nation: nation,
+          timezone: timezone(latitude, longitude)[0],
+          zodiac_type: "Tropical",
+          perspective_type: "Apparent Geocentric",
+          houses_system_identifier: "P"
+        },
+        active_points: [...used_planets, ...used_astral_points],
+        active_aspects: used_aspects,
+        theme: "light"
+      }
     };
 
     const response = await axios.request(options);

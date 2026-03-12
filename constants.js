@@ -21,10 +21,10 @@ const used_astral_points = [
 ];
 const used_asteroids = [
   "Chiron",
+  "Juno",
   "Pholus",
   "Ceres",
   "Pallas",
-  "Juno",
   "Vesta",
   "Eris",
   "Sedna",
@@ -125,10 +125,10 @@ const karmic_elements = {
     "Descendent",
     "Nodul Nord",
     "Nodul Sud",
-    "Chiron",
     "Lilith",
     "Mijlocul Cerului",
-    "Fundul Cerului"
+    "Fundul Cerului",
+    "Chiron"
   ],
   "en": [
     "Jupiter",
@@ -140,10 +140,10 @@ const karmic_elements = {
     "Descendant",
     "North Node",
     "South Node",
-    "Chiron",
     "Lilith",
     "Medium Coeli",
-    "Imum Coeli"
+    "Imum Coeli",
+    "Chiron"
   ]
 }
 
