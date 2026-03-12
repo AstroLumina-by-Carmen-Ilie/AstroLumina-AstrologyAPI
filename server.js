@@ -12,6 +12,7 @@ const {
   used_astral_points,
   used_asteroids,
   used_stars,
+  used_element_symbols,
   used_elements,
   used_aspects,
   natal_elements,
@@ -225,6 +226,7 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
           name: t.planets[planet.name],
           house: t.houses[planet.house],
           sign: t.signs[planet.sign],
+          symbol: used_element_symbols[planet.name],
           element: t.elements[planet.element]
         };
       });

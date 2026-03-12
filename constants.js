@@ -38,6 +38,40 @@ const used_stars = [
   "Regulus",
   "Spica"
 ];
+const used_element_symbols = {
+  'Sun': '☉',
+  'Moon': '☽',
+  'Mercury': '☿',
+  'Venus': '♀',
+  'Mars': '♂',
+  'Jupiter': '♃',
+  'Saturn': '♄',
+  'Uranus': '♅',
+  'Neptune': '♆',
+  'Pluto': '♇',
+  'Ascendant': '↑',
+  'Descendant': '↓',
+  'Mean_Lilith': '⚸',
+  'True_North_Lunar_Node': '☊',
+  'True_South_Lunar_Node': '☋',
+  'Medium_Coeli': 'MC',
+  'Imum_Coeli': 'IC',
+  'Chiron': '⚷',
+  'Ceres': '⚳',
+  'Pallas': '⚴',
+  'Juno': '⚵',
+  'Vesta': '⚶',
+  'Pholus': '⯛',
+  'Eris': '⯰',
+  'Sedna': '⯲',
+  'Haumea': '🝻',
+  'Makemake': '🝼',
+  'Ixion': 'Ix',
+  'Orcus': '🝿',
+  'Quaoar': '🝾',
+  'Regulus': '🜲',
+  'Spica': '★'
+};
 const used_elements = [
   ...used_planets,
   ...used_astral_points,
@@ -82,96 +116,6 @@ const unused_aspects = [
   { "name": "sesquiquadrate", "orb": 2 },
   { "name": "quincunx", "orb": 4 }
 ];
-
-const planet_symbols = {
-  ro: {
-    // Planete
-    'Soare': '☉',
-    'Luna': '☽',
-    'Mercur': '☿',
-    'Venus': '♀',
-    'Marte': '♂',
-    'Jupiter': '♃',
-    'Saturn': '♄',
-    'Uranus': '♅',
-    'Neptun': '♆',
-    'Pluto': '♇',
-
-    // Puncte
-    'Ascendent': '↑',
-    'Descendent': '↓',
-    'Lilith': '⚸',
-    'Nodul Nord': '☊',
-    'Nodul Sud': '☋',
-    'Mijlocul Cerului': 'MC',
-    'Fundul Cerului': 'IC',
-
-    // Asteroizi / alte puncte
-    'Chiron': '⚷',
-    'Ceres': '⚳',
-    'Pallas': '⚴',
-    'Juno': '⚵',
-    'Vesta': '⚶',
-
-    'Pholus': '⯛',
-    'Eris': '⯰',
-    'Sedna': '⯲',
-
-    'Haumea': '🝻',
-    'Makemake': '🝼',
-    'Ixion': null,
-    'Orcus': '🝿',
-    'Quaoar': '🝾',
-
-    // Stele fixe
-    'Regulus': 'Reg',
-    'Spica': 'Sp'
-  },
-
-  en: {
-    // Planets
-    'Sun': '☉',
-    'Moon': '☽',
-    'Mercury': '☿',
-    'Venus': '♀',
-    'Mars': '♂',
-    'Jupiter': '♃',
-    'Saturn': '♄',
-    'Uranus': '♅',
-    'Neptune': '♆',
-    'Pluto': '♇',
-
-    // Points
-    'Ascendant': '↑',
-    'Descendant': '↓',
-    'Lilith': '⚸',
-    'North Node': '☊',
-    'South Node': '☋',
-    'Medium Coeli': 'MC',
-    'Imum Coeli': 'IC',
-
-    // Asteroids / other points
-    'Chiron': '⚷',
-    'Ceres': '⚳',
-    'Pallas': '⚴',
-    'Juno': '⚵',
-    'Vesta': '⚶',
-
-    'Pholus': '⯛',
-    'Eris': '⯰',
-    'Sedna': '⯲',
-
-    'Haumea': '🝻',
-    'Makemake': '🝼',
-    'Ixion': null,
-    'Orcus': '🝿',
-    'Quaoar': '🝾',
-
-    // Fixed stars
-    'Regulus': 'Reg',
-    'Spica': 'Sp'
-  }
-};
 
 const sign_order = [
   "Aries",
@@ -242,11 +186,11 @@ module.exports = {
   used_astral_points,
   used_asteroids,
   used_stars,
+  used_element_symbols,
   used_elements,
   unused_elements,
   used_aspects,
   unused_aspects,
-   planet_symbols,
   sign_order,
   natal_elements,
   karmic_elements
