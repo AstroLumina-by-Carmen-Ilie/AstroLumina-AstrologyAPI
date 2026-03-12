@@ -83,6 +83,49 @@ const unused_aspects = [
   { "name": "quincunx", "orb": 4 }
 ];
 
+const planet_symbols = {
+  'ro': {
+    'Soare': '☉',
+    'Luna': '☽',
+    'Mercur': '☿',
+    'Venus': '♀',
+    'Marte': '♂',
+    'Jupiter': '♃',
+    'Saturn': '♄',
+    'Uranus': '♅',
+    'Neptun': '♆',
+    'Pluto': '♇',
+    'Ascendent': '↑',
+    'Descendent': '↓',
+    'Lilith': '⚸',
+    'Chiron': '⚷',
+    'Nodul Nord': '☊',
+    'Nodul Sud': '☋',
+    'Mijlocul Cerului': 'MC',
+    'Fundul Cerului': 'IC'
+  },
+  'en': {
+    'Sun': '☉',
+    'Moon': '☽',
+    'Mercury': '☿',
+    'Venus': '♀',
+    'Mars': '♂',
+    'Jupiter': '♃',
+    'Saturn': '♄',
+    'Uranus': '♅',
+    'Neptune': '♆',
+    'Pluto': '♇',
+    'Ascendant': '↑',
+    'Descendant': '↓',
+    'Lilith': '⚸',
+    'Kiron': '⚷',
+    'North Node': '☊',
+    'South Node': '☋',
+    'Medium Coeli': 'MC',
+    'Imum Coeli': 'IC'
+  },
+};
+
 const sign_order = [
   "Aries",
   "Taurus",
