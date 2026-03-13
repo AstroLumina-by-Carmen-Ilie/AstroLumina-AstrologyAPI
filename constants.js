@@ -131,6 +131,20 @@ const sign_order = [
   "Aquarius",
   "Pisces"
 ];
+const sign_emojis = {
+  'Aries': '♈',
+  'Taurus': '♉',
+  'Gemini': '♊',
+  'Cancer': '♋',
+  'Leo': '♌',
+  'Virgo': '♍',
+  'Libra': '♎',
+  'Scorpio': '♏',
+  'Sagittarius': '♐',
+  'Capricorn': '♑',
+  'Aquarius': '♒',
+  'Pisces': '♓'
+};
 
 const natal_elements = {
   "ro": [
@@ -192,6 +206,7 @@ module.exports = {
   used_aspects,
   unused_aspects,
   sign_order,
+  sign_emojis,
   natal_elements,
   karmic_elements
 }
