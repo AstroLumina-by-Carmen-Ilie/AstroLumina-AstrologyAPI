@@ -14,6 +14,7 @@ const {
   used_stars,
   used_element_symbols,
   used_elements,
+  used_houses,
   used_aspects,
   natal_elements,
   karmic_elements
@@ -232,6 +233,29 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
         };
       });
 
+    const cosmicHousesFilteredData = Object.keys(cosmicElements).map((key) => {
+      if (
+        cosmicElements[key] !== null &&
+        typeof cosmicElements[key] === 'object' &&
+        used_houses.indexOf(cosmicElements[key].name) > -1
+      ) {
+        return cosmicElements[key];
+      }
+      return null;
+    })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const indexA = used_houses.indexOf(a.name);
+        const indexB = used_houses.indexOf(b.name);
+        return indexA - indexB;
+      })
+      .map((house) => ({
+        ...house,
+        name: t.houses[house.name],
+        sign: t.signs[house.sign],
+        element: t.elements[house.element]
+      }));
+    
     const cosmicAspects = response.data.chart_data.aspects;
     const cosmicAspectsFilteredData = cosmicAspects.map((a) => ({
       ...a,
@@ -243,6 +267,7 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
 
     let allData = {
       "cosmic_elements": cosmicElementsFilteredData,
+      "cosmic_houses": cosmicHousesFilteredData,
       "cosmic_aspects": cosmicAspectsFilteredData
     };
     switch (type) {
@@ -252,6 +277,7 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
             (p) =>
               natal_elements[lang].includes(p.name)
           ),
+          "cosmic_houses": cosmicHousesFilteredData,
           "cosmic_aspects": cosmicAspectsFilteredData.filter(
             (a) =>
               natal_elements[lang].includes(a.p1_name) &&
@@ -264,6 +290,7 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
           "cosmic_elements": cosmicElementsFilteredData.filter(
             (p) => karmic_elements[lang].includes(p.name)
           ),
+          "cosmic_houses": cosmicHousesFilteredData,
           "cosmic_aspects": cosmicAspectsFilteredData.filter(
             (a) =>
               (karmic_elements[lang].includes(a.p1_name) && (karmic_elements[lang].includes(a.p2_name) || natal_elements[lang].includes(a.p2_name))) ||

@@ -101,6 +101,22 @@ const unused_elements = [
   ...unused_stars
 ];
 
+const used_houses = [
+  "First_House",
+  "Second_House",
+  "Third_House",
+  "Fourth_House",
+  "Fifth_House",
+  "Sixth_House",
+  "Seventh_House",
+  "Eighth_House",
+  "Ninth_House",
+  "Tenth_House",
+  "Eleventh_House",
+  "Twelfth_House"
+];
+const unused_houses = [];
+
 const used_aspects = [
   { "name": "conjunction", "orb": 8 },
   { "name": "semi-sextile", "orb": 8 },
@@ -203,6 +219,8 @@ module.exports = {
   used_element_symbols,
   used_elements,
   unused_elements,
+  used_houses,
+  unused_houses,
   used_aspects,
   unused_aspects,
   sign_order,
