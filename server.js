@@ -47,6 +47,7 @@ app.use(cors({
     // Cloudflare
     'https://astrolumina.pages.dev',
     'https://development.astrolumina.pages.dev',
+    'https://develop.astrolumina.pages.dev',
 
     // Live
     'https://carmenilie.com',
