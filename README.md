@@ -85,14 +85,35 @@ curl -sS -X POST "http://localhost:3031/api/v2/ro/birth-data" \
   }'
 ```
 
-### `POST /api/v2/:lang/astral-data`
+### `POST /api/v2/:lang/astral-data/:type?`
 
-Returnează o listă filtrată cu punctele/planetele “active” (din `constants.js`), **traduse** pentru `name`, `house`, `sign`, `element`.
+Returnează o listă filtrată cu punctele/planetele "active" (din `constants.js`), **traduse** pentru `name`, `house`, `sign`, `element`.
 
-Exemplu:
+Parametrul opțional `:type` poate fi:
+- **(fără type)**: returnează toate elementele
+- **type = `natal`**: returnează subsetul "natal" (ex. Soare/Lună etc.)
+- **type = `karmic`**: returnează subsetul "karmic" (noduri lunare, Lilith etc.)
+
+Exemplu pentru toate elementele:
 
 ```bash
 curl -sS -X POST "http://localhost:3031/api/v2/en/astral-data" \
+  -H "Content-Type: application/json" \
+  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
+```
+
+Exemplu pentru elemente natale:
+
+```bash
+curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-data/natal" \
+  -H "Content-Type: application/json" \
+  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
+```
+
+Exemplu pentru elemente karmice:
+
+```bash
+curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-data/karmic" \
   -H "Content-Type: application/json" \
   -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
 ```
@@ -101,27 +122,18 @@ curl -sS -X POST "http://localhost:3031/api/v2/en/astral-data" \
 
 Returnează partea de `chart` (utilă pentru redare/diagramă). Intern, endpoint-ul reapelază `birth-data`.
 
+Exemplu:
+
+```bash
+curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-chart" \
+  -H "Content-Type: application/json" \
+  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
+```
+
 ### `POST /api/v2/:lang/lunar-data`
 
 Returnează datele de fază lunară (cu `moon_phase_name` tradus).
 
-### `POST /api/v1/:lang/astral-interpretations/:type?`
-
-Returnează date astrale filtrate pe tip:
-
-- **(fără type)**: returnează toate elementele
-- **type = `natal`**: returnează subsetul “natal” (ex. Soare/Lună etc.)
-- **type = `karmic`**: returnează subsetul “karmic” (noduri lunare, Lilith etc.)
-
-Notă: în codul curent, acest endpoint face un apel intern către `http://localhost:3031/api/v1/:lang/astral-data`, însă în repo nu există un endpoint definit la acel path (există `/api/v2/:lang/astral-data`). Dacă primești `404`, acesta e motivul.
-
-Exemplu:
-
-```bash
-curl -sS -X POST "http://localhost:3031/api/v1/ro/astral-interpretations/natal" \
-  -H "Content-Type: application/json" \
-  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
-```
 
 ## Rate limiting
 
