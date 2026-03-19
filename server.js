@@ -132,39 +132,48 @@ const loadTranslations = (lang) => {
 const fetchBirthData = async (req) => {
   const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
 
-  const options = {
-    method: 'POST',
-    url: `${ASTROLOGER_API_URL}/api/v5/chart/birth-chart`,
-    headers: {
-      'x-rapidapi-key': ASTROLOGER_API_KEY,
-      'x-rapidapi-host': ASTROLOGER_API_HOST,
-      'Content-Type': 'application/json'
-    },
-    data: {
-      subject: {
-        name,
-        year,
-        month,
-        day,
-        hour,
-        minute,
-        longitude,
-        latitude,
-        city,
-        nation,
-        timezone: timezone(latitude, longitude)[0],
-        zodiac_type: 'Tropical',
-        perspective_type: 'Apparent Geocentric',
-        houses_system_identifier: 'P'
-      },
-      active_points: used_elements,
-      active_aspects: used_aspects,
-      theme: 'light'
-    }
-  };
+  return Sentry.startSpan(
+    { op: 'http.client', name: 'POST Astrologer API /birth-chart' },
+    async (span) => {
+      span?.setAttribute('astro.city', city);
+      span?.setAttribute('astro.nation', nation);
+      span?.setAttribute('astro.year', year);
 
-  const response = await axios.request(options);
-  return response.data;
+      const options = {
+        method: 'POST',
+        url: `${ASTROLOGER_API_URL}/api/v5/chart/birth-chart`,
+        headers: {
+          'x-rapidapi-key': ASTROLOGER_API_KEY,
+          'x-rapidapi-host': ASTROLOGER_API_HOST,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          subject: {
+            name,
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            longitude,
+            latitude,
+            city,
+            nation,
+            timezone: timezone(latitude, longitude)[0],
+            zodiac_type: 'Tropical',
+            perspective_type: 'Apparent Geocentric',
+            houses_system_identifier: 'P'
+          },
+          active_points: used_elements,
+          active_aspects: used_aspects,
+          theme: 'light'
+        }
+      };
+
+      const response = await axios.request(options);
+      return response.data;
+    }
+  );
 };
 
 // Health check endpoint
@@ -175,6 +184,11 @@ app.get('/health', (req, res) => {
 // Get full astral data from Astrologer
 app.post('/api/v2/:lang/birth-data', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
+
+  Sentry.setContext('request', {
+    endpoint: 'birth-data',
+    language: lang,
+  });
 
   if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
@@ -190,6 +204,7 @@ app.post('/api/v2/:lang/birth-data', async (req, res, next) => {
     res.json(allData);
   } catch (error) {
     console.error('Error fetching birth data:', error.message);
+    Sentry.captureException(error, { tags: { endpoint: 'birth-data', language: lang } });
     next(error);
   }
 });
@@ -198,6 +213,12 @@ app.post('/api/v2/:lang/birth-data', async (req, res, next) => {
 app.post('/api/v2/:lang/astral-data/:type?', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
   const type = req.params.type?.toLowerCase();
+
+  Sentry.setContext('request', {
+    endpoint: 'astral-data',
+    language: lang,
+    type: type || 'full',
+  });
 
   if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
@@ -211,7 +232,10 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res, next) => {
   const t = loadTranslations(lang);
 
   try {
-    const birthData = await fetchBirthData(req);
+    const birthData = await Sentry.startSpan(
+      { op: 'astro.filter', name: `astral-data/${type || 'full'}` },
+      async () => fetchBirthData(req)
+    );
 
     const cosmicElements = birthData.chart_data.subject;
     const cosmicElementsFilteredData = Object.keys(cosmicElements)
@@ -297,6 +321,7 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res, next) => {
     res.json(allData);
   } catch (error) {
     console.error('Error fetching astral data:', error.message);
+    Sentry.captureException(error, { tags: { endpoint: 'astral-data', language: lang, type: type || 'full' } });
     next(error);
   }
 });
@@ -304,6 +329,8 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res, next) => {
 // Get filtered astral SVG chart
 app.post('/api/v2/:lang/astral-chart', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
+
+  Sentry.setContext('request', { endpoint: 'astral-chart', language: lang });
 
   if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
@@ -319,6 +346,7 @@ app.post('/api/v2/:lang/astral-chart', async (req, res, next) => {
     res.json(birthData.chart);
   } catch (error) {
     console.error('Error fetching astral chart:', error.message);
+    Sentry.captureException(error, { tags: { endpoint: 'astral-chart', language: lang } });
     next(error);
   }
 });
@@ -326,6 +354,8 @@ app.post('/api/v2/:lang/astral-chart', async (req, res, next) => {
 // Get filtered lunar data
 app.post('/api/v2/:lang/lunar-data', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
+
+  Sentry.setContext('request', { endpoint: 'lunar-data', language: lang });
 
   if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
@@ -350,6 +380,7 @@ app.post('/api/v2/:lang/lunar-data', async (req, res, next) => {
     res.json(allData);
   } catch (error) {
     console.error('Error fetching lunar data:', error.message);
+    Sentry.captureException(error, { tags: { endpoint: 'lunar-data', language: lang } });
     next(error);
   }
 });
