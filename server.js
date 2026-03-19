@@ -1,12 +1,16 @@
-require('dotenv').config();
+// instrument.js must be loaded before all other modules
+require('./instrument');
 
+const Sentry = require('@sentry/node');
 const express = require('express');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const axios = require('axios');
-const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
-const { find: timezone } = require('geo-tz')
+const { find: timezone } = require('geo-tz');
 const {
   used_planets,
   used_astral_points,
@@ -25,63 +29,63 @@ const ASTROLOGER_API_URL = process.env.ASTROLOGER_API_URL;
 const ASTROLOGER_API_HOST = process.env.ASTROLOGER_API_HOST;
 
 const app = express();
-const port = 3031;
+const port = process.env.PORT || 3031;
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Configure rate limiter: maximum of 20 requests per minute
+// Security middleware
+app.use(helmet());
+
+// Compression middleware
+app.use(compression());
+
+// Request logging
+app.use(morgan(isProduction ? 'combined' : 'dev'));
+
+// Rate limiter: maximum of 20 requests per minute per IP
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 20, // limit each IP to 20 requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: 'Too many requests from this IP, please try again after a minute'
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again after a minute' }
 });
 
-// Apply the rate limiter to all routes
 app.use(limiter);
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(cors({
   origin: [
-    // Local development
     'http://localhost:3031',
     'http://localhost:5173',
-
-    // Cloudflare
     'https://astrolumina.pages.dev',
     'https://development.astrolumina.pages.dev',
     'https://develop.astrolumina.pages.dev',
-
-    // Live
     'https://carmenilie.com',
     'https://www.carmenilie.com',
-
-    // Live
     'https://carmenilieastrolog.com',
     'https://www.carmenilieastrolog.com',
-
-    // Live
     'https://astrolumina.com',
     'https://www.astrolumina.com'
   ]
 }));
 
+const VALID_LANGUAGES = ['ro', 'en'];
+
 const validateData = (req) => {
   const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
 
-  // Validate required parameters
-  if (!longitude && longitude !== 0 ||
-    !latitude && latitude !== 0 ||
-    !year && year !== 0 ||
-    !month && month !== 0 ||
-    !day && day !== 0 ||
-    !hour && hour !== 0 ||
-    !minute && minute !== 0 ||
-    !city && city !== "" ||
-    !nation && nation !== "" ||
-    !name && name !== "") {
+  if ((!longitude && longitude !== 0) ||
+    (!latitude && latitude !== 0) ||
+    (!year && year !== 0) ||
+    (!month && month !== 0) ||
+    (!day && day !== 0) ||
+    (!hour && hour !== 0) ||
+    (!minute && minute !== 0) ||
+    (city !== '' && !city) ||
+    (nation !== '' && !nation) ||
+    (name !== '' && !name)) {
     return 21;
   }
 
-  // Validate parameter types and ranges
   if (typeof longitude !== 'number' || longitude < -180 || longitude > 180 ||
     typeof latitude !== 'number' || latitude < -90 || latitude > 90 ||
     typeof year !== 'number' || year < 1900 || year > 2300 ||
@@ -96,132 +100,129 @@ const validateData = (req) => {
   }
 
   return 0;
-}
+};
+
+const validateLanguage = (lang) => VALID_LANGUAGES.includes(lang);
+
+const getValidationError = (code) => {
+  switch (code) {
+    case 21:
+      return 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute, city, nation, name';
+    case 22:
+      return 'Invalid parameter values. Please check the ranges and types of all parameters.';
+    default:
+      return 'Validation error';
+  }
+};
 
 const getPointType = (name) => {
-  if (used_planets.includes(name)) {
-    return 'planet';
-  }
-  if (used_astral_points.includes(name)) {
-    return 'astral_point';
-  }
-  if (used_asteroids.includes(name)) {
-    return 'asteroid';
-  }
-  if (used_stars.includes(name)) {
-    return 'star';
-  }
+  if (used_planets.includes(name)) return 'planet';
+  if (used_astral_points.includes(name)) return 'astral_point';
+  if (used_asteroids.includes(name)) return 'asteroid';
+  if (used_stars.includes(name)) return 'star';
   return 'astrological_point';
 };
 
-// Get full astral data from Astrologer
-app.post('/api/v2/:lang/birth-data', async (req, res) => {
-  const lang = req.params.lang?.toLowerCase();
-  const validLanguages = ['ro', 'en'];
+const loadTranslations = (lang) => {
+  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
+  const { translations } = require(translationsPath);
+  return translations;
+};
 
-  if (!validLanguages.includes(lang)) {
+const fetchBirthData = async (req) => {
+  const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
+
+  const options = {
+    method: 'POST',
+    url: `${ASTROLOGER_API_URL}/api/v5/chart/birth-chart`,
+    headers: {
+      'x-rapidapi-key': ASTROLOGER_API_KEY,
+      'x-rapidapi-host': ASTROLOGER_API_HOST,
+      'Content-Type': 'application/json'
+    },
+    data: {
+      subject: {
+        name,
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        longitude,
+        latitude,
+        city,
+        nation,
+        timezone: timezone(latitude, longitude)[0],
+        zodiac_type: 'Tropical',
+        perspective_type: 'Apparent Geocentric',
+        houses_system_identifier: 'P'
+      },
+      active_points: used_elements,
+      active_aspects: used_aspects,
+      theme: 'light'
+    }
+  };
+
+  const response = await axios.request(options);
+  return response.data;
+};
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+// Get full astral data from Astrologer
+app.post('/api/v2/:lang/birth-data', async (req, res, next) => {
+  const lang = req.params.lang?.toLowerCase();
+
+  if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
 
-  const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
-
-  validation = validateData(req);
+  const validation = validateData(req);
   if (validation !== 0) {
-    switch (validation) {
-      case 21:
-        return res.status(400).json({ error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute, city, nation, name' });
-      case 22:
-        return res.status(400).json({ error: 'Invalid parameter values. Please check the ranges and types of all parameters.' });
-    }
+    return res.status(400).json({ error: getValidationError(validation) });
   }
 
   try {
-    const options = {
-      method: 'POST',
-      url: ASTROLOGER_API_URL + '/api/v5/chart/birth-chart',
-      headers: {
-        'x-rapidapi-key': ASTROLOGER_API_KEY,
-        'x-rapidapi-host': ASTROLOGER_API_HOST,
-        'Content-Type': 'application/json'
-      },
-      data: {
-        subject: {
-          name: name,
-          year: year,
-          month: month,
-          day: day,
-          hour: hour,
-          minute: minute,
-          longitude: longitude,
-          latitude: latitude,
-          city: city,
-          nation: nation,
-          timezone: timezone(latitude, longitude)[0],
-          zodiac_type: "Tropical",
-          perspective_type: "Apparent Geocentric",
-          houses_system_identifier: "P"
-        },
-        active_points: used_elements,
-        active_aspects: used_aspects,
-        theme: "light"
-      }
-    };
-
-    const response = await axios.request(options);
-
-    const allData = response.data;
+    const allData = await fetchBirthData(req);
     res.json(allData);
   } catch (error) {
-    console.error('Error getting data:', error);
-    res.status(500).json({ error: 'Error getting data', details: error.message });
+    console.error('Error fetching birth data:', error.message);
+    next(error);
   }
 });
 
 // Get filtered astral data
-app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
+app.post('/api/v2/:lang/astral-data/:type?', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
   const type = req.params.type?.toLowerCase();
-  const validLanguages = ['ro', 'en'];
 
-  if (!validLanguages.includes(lang)) {
+  if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
 
-  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
-  const { translations: t } = require(translationsPath);
+  const validation = validateData(req);
+  if (validation !== 0) {
+    return res.status(400).json({ error: getValidationError(validation) });
+  }
+
+  const t = loadTranslations(lang);
 
   try {
-    const options = {
-      method: 'POST',
-      url: `http://localhost:${port}/api/v2/${lang}/birth-data`,
-      headers: {
-        'Accept-Language': lang
-      },
-      data: req.body
-    };
+    const birthData = await fetchBirthData(req);
 
-    const response = await axios.request(options);
-
-    const cosmicElements = response.data.chart_data.subject;
-    const cosmicElementsFilteredData = Object.keys(cosmicElements).map((key) => {
-      if (
-        cosmicElements[key] !== null &&
-        typeof cosmicElements[key] === 'object' &&
-        used_elements.indexOf(cosmicElements[key].name) > -1
-      ) {
-        return cosmicElements[key];
-      }
-      return null;
-    })
-      .filter(Boolean)
-      .sort((a, b) => {
-        const indexA = used_elements.indexOf(a.name);
-        const indexB = used_elements.indexOf(b.name);
-        return indexA - indexB;
+    const cosmicElements = birthData.chart_data.subject;
+    const cosmicElementsFilteredData = Object.keys(cosmicElements)
+      .filter((key) => {
+        const el = cosmicElements[key];
+        return el !== null && typeof el === 'object' && used_elements.includes(el.name);
       })
+      .map((key) => cosmicElements[key])
+      .sort((a, b) => used_elements.indexOf(a.name) - used_elements.indexOf(b.name))
       .map((planet) => {
         const pointType = getPointType(planet.name);
-
         return {
           ...planet,
           point_type: t.types?.[pointType] ?? pointType,
@@ -233,182 +234,170 @@ app.post('/api/v2/:lang/astral-data/:type?', async (req, res) => {
         };
       });
 
-    const cosmicHousesFilteredData = Object.keys(cosmicElements).map((key) => {
-      if (
-        cosmicElements[key] !== null &&
-        typeof cosmicElements[key] === 'object' &&
-        used_houses.indexOf(cosmicElements[key].name) > -1
-      ) {
-        return cosmicElements[key];
-      }
-      return null;
-    })
-      .filter(Boolean)
-      .sort((a, b) => {
-        const indexA = used_houses.indexOf(a.name);
-        const indexB = used_houses.indexOf(b.name);
-        return indexA - indexB;
+    const cosmicHousesFilteredData = Object.keys(cosmicElements)
+      .filter((key) => {
+        const el = cosmicElements[key];
+        return el !== null && typeof el === 'object' && used_houses.includes(el.name);
       })
+      .map((key) => cosmicElements[key])
+      .sort((a, b) => used_houses.indexOf(a.name) - used_houses.indexOf(b.name))
       .map((house) => ({
         ...house,
         name: t.houses[house.name],
         sign: t.signs[house.sign],
         element: t.elements[house.element]
       }));
-    
-    const cosmicAspects = response.data.chart_data.aspects;
-    const cosmicAspectsFilteredData = cosmicAspects.map((a) => ({
+
+    const cosmicAspectsFilteredData = birthData.chart_data.aspects.map((a) => ({
       ...a,
       p1_name: t.planets?.[a.p1_name] ?? a.p1_name,
       p2_name: t.planets?.[a.p2_name] ?? a.p2_name,
       aspect: t.aspects?.[a.aspect] ?? a.aspect
     }));
 
-
     let allData = {
-      "cosmic_elements": cosmicElementsFilteredData,
-      "cosmic_houses": cosmicHousesFilteredData,
-      "cosmic_aspects": cosmicAspectsFilteredData
+      cosmic_elements: cosmicElementsFilteredData,
+      cosmic_houses: cosmicHousesFilteredData,
+      cosmic_aspects: cosmicAspectsFilteredData
     };
+
     switch (type) {
-      case "natal":
+      case 'natal':
         allData = {
-          "cosmic_elements": cosmicElementsFilteredData.filter(
-            (p) =>
-              natal_elements[lang].includes(p.name)
+          cosmic_elements: cosmicElementsFilteredData.filter(
+            (p) => natal_elements[lang].includes(p.name)
           ),
-          "cosmic_houses": cosmicHousesFilteredData,
-          "cosmic_aspects": cosmicAspectsFilteredData.filter(
+          cosmic_houses: cosmicHousesFilteredData,
+          cosmic_aspects: cosmicAspectsFilteredData.filter(
             (a) =>
               natal_elements[lang].includes(a.p1_name) &&
               natal_elements[lang].includes(a.p2_name)
           )
         };
         break;
-      case "karmic":
+      case 'karmic':
         allData = {
-          "cosmic_elements": cosmicElementsFilteredData.filter(
+          cosmic_elements: cosmicElementsFilteredData.filter(
             (p) => karmic_elements[lang].includes(p.name)
           ),
-          "cosmic_houses": cosmicHousesFilteredData,
-          "cosmic_aspects": cosmicAspectsFilteredData.filter(
+          cosmic_houses: cosmicHousesFilteredData,
+          cosmic_aspects: cosmicAspectsFilteredData.filter(
             (a) =>
-              (karmic_elements[lang].includes(a.p1_name) && (karmic_elements[lang].includes(a.p2_name) || natal_elements[lang].includes(a.p2_name))) ||
-              (karmic_elements[lang].includes(a.p2_name) && (karmic_elements[lang].includes(a.p1_name) || natal_elements[lang].includes(a.p1_name)))
+              (karmic_elements[lang].includes(a.p1_name) &&
+                (karmic_elements[lang].includes(a.p2_name) || natal_elements[lang].includes(a.p2_name))) ||
+              (karmic_elements[lang].includes(a.p2_name) &&
+                (karmic_elements[lang].includes(a.p1_name) || natal_elements[lang].includes(a.p1_name)))
           )
         };
         break;
       default:
         break;
     }
+
     res.json(allData);
   } catch (error) {
-    console.error('Error getting data:', error);
-    res.status(500).json({ error: 'Error getting data', details: error.message });
+    console.error('Error fetching astral data:', error.message);
+    next(error);
   }
 });
 
 // Get filtered astral SVG chart
-app.post('/api/v2/:lang/astral-chart', async (req, res) => {
+app.post('/api/v2/:lang/astral-chart', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
-  const validLanguages = ['ro', 'en'];
 
-  if (!validLanguages.includes(lang)) {
+  if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
 
-  const { longitude, latitude, year, month, day, hour, minute, city, nation, name } = req.body;
-
-  let validation = validateData(req);
+  const validation = validateData(req);
   if (validation !== 0) {
-    switch (validation) {
-      case 21:
-        return res.status(400).json({ error: 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute, city, nation, name' });
-      case 22:
-        return res.status(400).json({ error: 'Invalid parameter values. Please check the ranges and types of all parameters.' });
-    }
+    return res.status(400).json({ error: getValidationError(validation) });
   }
 
   try {
-    const options = {
-      method: 'POST',
-      url: ASTROLOGER_API_URL + '/api/v5/chart/birth-chart',
-      headers: {
-        'x-rapidapi-key': ASTROLOGER_API_KEY,
-        'x-rapidapi-host': ASTROLOGER_API_HOST,
-        'Content-Type': 'application/json'
-      },
-      data: {
-        subject: {
-          name: name,
-          year: year,
-          month: month,
-          day: day,
-          hour: hour,
-          minute: minute,
-          longitude: longitude,
-          latitude: latitude,
-          city: city,
-          nation: nation,
-          timezone: timezone(latitude, longitude)[0],
-          zodiac_type: "Tropical",
-          perspective_type: "Apparent Geocentric",
-          houses_system_identifier: "P"
-        },
-        active_points: [...used_planets, ...used_astral_points],
-        active_aspects: used_aspects,
-        theme: "light"
-      }
-    };
-
-    const response = await axios.request(options);
-    const allData = response.data.chart;
-
-    res.json(allData);
+    const birthData = await fetchBirthData(req);
+    res.json(birthData.chart);
   } catch (error) {
-    console.error('Error getting data:', error);
-    res.status(500).json({ error: 'Error getting data', details: error.message });
+    console.error('Error fetching astral chart:', error.message);
+    next(error);
   }
 });
 
 // Get filtered lunar data
-app.post('/api/v2/:lang/lunar-data', async (req, res) => {
+app.post('/api/v2/:lang/lunar-data', async (req, res, next) => {
   const lang = req.params.lang?.toLowerCase();
-  const validLanguages = ['ro', 'en'];
 
-  if (!validLanguages.includes(lang)) {
+  if (!validateLanguage(lang)) {
     return res.status(400).json({ error: 'Invalid language specified. Use ro or en.' });
   }
 
-  const translationsPath = path.resolve(__dirname, 'translations', `${lang}.js`);
-  const { translations: t } = require(translationsPath);
+  const validation = validateData(req);
+  if (validation !== 0) {
+    return res.status(400).json({ error: getValidationError(validation) });
+  }
+
+  const t = loadTranslations(lang);
 
   try {
-    const options = {
-      method: 'POST',
-      url: `http://localhost:${port}/api/v2/${lang}/birth-data`,
-      headers: {
-        'Accept-Language': lang
-      },
-      data: req.body
-    };
-
-    const response = await axios.request(options);
-    const filteredData = response.data.chart_data.subject;
+    const birthData = await fetchBirthData(req);
+    const lunarPhase = birthData.chart_data.subject.lunar_phase;
 
     const allData = {
-      ...filteredData['lunar_phase'],
-      moon_phase_name: t.lunar_phases[filteredData['lunar_phase'].moon_phase_name]
+      ...lunarPhase,
+      moon_phase_name: t.lunar_phases[lunarPhase.moon_phase_name]
     };
 
     res.json(allData);
   } catch (error) {
-    console.error('Error getting data:', error);
-    res.status(500).json({ error: 'Error getting data', details: error.message });
+    console.error('Error fetching lunar data:', error.message);
+    next(error);
   }
 });
 
-// Start the server
-app.listen(port, () => {
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Sentry Express error handler — must be registered AFTER all routes
+Sentry.setupExpressErrorHandler(app);
+
+// Global error handler
+app.use((err, req, res, _next) => {
+  console.error('Unhandled error:', err);
+
+  const statusCode = err.statusCode || 500;
+  const response = {
+    error: isProduction ? 'Internal server error' : err.message
+  };
+
+  if (!isProduction) {
+    response.stack = err.stack;
+  }
+
+  res.status(statusCode).json(response);
+});
+
+// Start server
+const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+// Graceful shutdown
+const gracefulShutdown = async (signal) => {
+  console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+
+  server.close(async () => {
+    console.log('HTTP server closed.');
+    await Sentry.close(2000);
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout.');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
