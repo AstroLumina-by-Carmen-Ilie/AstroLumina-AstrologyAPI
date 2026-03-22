@@ -12,7 +12,8 @@
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "render-build": "rm -rf node_modules && npm install && npm run build"
   },
   "dependencies": {
     "@sentry/node": "^10.45.0",
