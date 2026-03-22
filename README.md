@@ -1,6 +1,6 @@
 # AstroLumina Astrology API
 
-Node.js (Express) API server that wraps the [Astrologer](https://rapidapi.com) astrological engine (RapidAPI). Generates natal chart data, filtered astral elements, SVG charts, and lunar phase information from birth data.
+TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://rapidapi.com) astrological engine (RapidAPI). Generates natal chart data, filtered astral elements, SVG charts, and lunar phase information from birth data.
 
 ## Features
 
@@ -17,29 +17,45 @@ Node.js (Express) API server that wraps the [Astrologer](https://rapidapi.com) a
 
 | Layer | Technology |
 |-------|-----------|
-| Runtime | Node.js 18+ / 20+ (LTS) |
-| Framework | Express 4.x |
+| Runtime | Node.js 22.x (LTS) |
+| Framework | Express 5.x |
+| Language | TypeScript (ESM) |
 | Monitoring | Sentry 10.x (with profiling) |
 | HTTP Client | Axios |
 | Middleware | Helmet, Compression, Morgan, CORS, Rate Limit |
+| Validation | Zod |
 
 ## Project Structure
 
 ```
 .
-├── server.js            # Main Express application
-├── instrument.js        # Sentry initialization (loaded first)
-├── constants.js         # Astrological constants (planets, houses, aspects)
-├── translations/
-│   ├── en.js            # English translations
-│   └── ro.js            # Romanian translations
+├── src/
+│   ├── server.ts              # Main Express entry point
+│   ├── instrument.ts          # Sentry initialization (imported first)
+│   ├── constants.ts           # Astrological constants (planets, houses, aspects)
+│   ├── config/
+│   │   └── env.ts             # Environment variable validation (zod)
+│   ├── middleware/
+│   │   ├── security.ts        # Helmet, CORS, rate limiter
+│   │   └── error-handler.ts   # Error handling middleware
+│   ├── routes/
+│   │   ├── health.ts          # GET /health
+│   │   └── astrology.ts       # Astrology API routes
+│   ├── translations/
+│   │   ├── index.ts           # Translation loader + types
+│   │   ├── en.ts              # English translations
+│   │   └── ro.ts              # Romanian translations
+│   └── types/
+│       └── astrology.ts       # TypeScript interfaces
+├── dist/                      # Compiled output (gitignored)
+├── tsconfig.json
 ├── package.json
-└── .env                 # Environment variables (not committed)
+└── .env                       # Environment variables (not committed)
 ```
 
 ## Prerequisites
 
-- **Node.js** 18+ or 20+ (LTS)
+- **Node.js** 22.x (LTS)
 - **RapidAPI** subscription for [Astrologer API](https://rapidapi.com)
 
 ## Installation
@@ -88,16 +104,31 @@ SENTRY_RELEASE="v1.0.0"
 ### Development
 
 ```bash
-npm run dev    # Runs with nodemon (auto-reload)
+npm run dev    # Runs with tsx watch (auto-reload)
+```
+
+### Build
+
+```bash
+npm run build  # Compiles TypeScript to dist/
 ```
 
 ### Production
 
 ```bash
-npm start      # Runs with node directly
+npm run build
+npm start      # Runs compiled dist/server.js
 ```
 
 Server starts at `http://localhost:3031`.
+
+## Deployment (Render)
+
+- **Build Command:** `npm run render-build`
+- **Start Command:** `npm start`
+- **Node Version:** 22.x (set via `engines` in package.json)
+
+The `render-build` script handles clean install (including devDependencies for TypeScript compilation) and builds the project. At runtime, `NODE_ENV=production` is used automatically by Render.
 
 ## API Endpoints
 
@@ -202,14 +233,6 @@ Returns lunar phase information with the phase name translated to the specified 
 
 In development mode, error responses include the stack trace for debugging.
 
-## Deployment
-
-- **Process manager**: use `pm2` or `systemd` in production
-- **Reverse proxy**: Nginx or Caddy in front (TLS termination, compression)
-- **Environment variables**: inject secrets at runtime, never commit `.env`
-- **Health monitoring**: `GET /health` returns uptime and memory stats
-- **Graceful shutdown**: handles `SIGTERM`/`SIGINT` — drains connections, flushes Sentry
-
 ## Troubleshooting
 
 | Symptom | Cause |
@@ -219,4 +242,3 @@ In development mode, error responses include the stack trace for debugging.
 | Wrong timezone | Check `latitude`/`longitude` are decimal degrees with correct signs |
 | `413` payload error | Request body exceeds 1MB limit |
 | `429` too many requests | Client exceeded 20 req/min rate limit |
-
