@@ -31,7 +31,6 @@ const ASTROLOGER_API_HOST = process.env.ASTROLOGER_API_HOST;
 const app = express();
 const port = process.env.PORT || 3031;
 const isProduction = process.env.NODE_ENV === 'production';
-const startTime = Date.now();
 
 // Security middleware
 app.use(helmet());
