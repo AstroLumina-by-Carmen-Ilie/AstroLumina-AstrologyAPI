@@ -31,6 +31,7 @@ const ASTROLOGER_API_HOST = process.env.ASTROLOGER_API_HOST;
 const app = express();
 const port = process.env.PORT || 3031;
 const isProduction = process.env.NODE_ENV === 'production';
+const startTime = Date.now();
 
 // Security middleware
 app.use(helmet());
@@ -51,22 +52,31 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use(express.json({ limit: '1mb' }));
-app.use(cors({
-  origin: [
-    'http://localhost:3031',
-    'http://localhost:5173',
-    'https://astrolumina.pages.dev',
-    'https://development.astrolumina.pages.dev',
-    'https://develop.astrolumina.pages.dev',
-    'https://carmenilie.com',
-    'https://www.carmenilie.com',
-    'https://carmenilieastrolog.com',
-    'https://www.carmenilieastrolog.com',
-    'https://astrolumina.com',
-    'https://www.astrolumina.com'
-  ]
+
+// Body parser with meaningful error for oversized payloads
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, _res, buf) => { req.rawBody = buf; }
 }));
+
+// CORS — support CORS_ORIGINS env var (comma-separated) or fallback to defaults
+const defaultCorsOrigins = [
+  'http://localhost:3031',
+  'http://localhost:5173',
+  'https://astrolumina.pages.dev',
+  'https://development.astrolumina.pages.dev',
+  'https://develop.astrolumina.pages.dev',
+  'https://carmenilie.com',
+  'https://www.carmenilie.com',
+  'https://carmenilieastrolog.com',
+  'https://www.carmenilieastrolog.com',
+  'https://astrolumina.com',
+  'https://www.astrolumina.com',
+];
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim())
+  : defaultCorsOrigins;
+app.use(cors({ origin: corsOrigins }));
 
 const VALID_LANGUAGES = ['ro', 'en'];
 
@@ -88,7 +98,7 @@ const validateData = (req) => {
 
   if (typeof longitude !== 'number' || longitude < -180 || longitude > 180 ||
     typeof latitude !== 'number' || latitude < -90 || latitude > 90 ||
-    typeof year !== 'number' || year < 1900 || year > 2300 ||
+    typeof year !== 'number' || year < 1 || year > 3000 ||
     typeof month !== 'number' || month < 1 || month > 12 ||
     typeof day !== 'number' || day < 1 || day > 31 ||
     typeof hour !== 'number' || hour < 0 || hour > 23 ||
@@ -109,7 +119,7 @@ const getValidationError = (code) => {
     case 21:
       return 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute, city, nation, name';
     case 22:
-      return 'Invalid parameter values. Please check the ranges and types of all parameters.';
+      return 'Invalid parameter values. Check ranges: longitude [-180,180], latitude [-90,90], year [1,3000], month [1,12], day [1,31], hour [0,23], minute [0,59].';
     default:
       return 'Validation error';
   }
@@ -178,7 +188,18 @@ const fetchBirthData = async (req) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
+  const mem = process.memoryUsage();
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    node: process.version,
+    memory: {
+      rss: `${Math.round(mem.rss / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)}MB`,
+    },
+    environment: process.env.NODE_ENV || 'development',
+  });
 });
 
 // Get full astral data from Astrologer
@@ -385,6 +406,14 @@ app.post('/api/v2/:lang/lunar-data', async (req, res, next) => {
   }
 });
 
+// Payload too large handler
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request payload too large. Maximum size is 1MB.' });
+  }
+  next(err);
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
@@ -414,15 +443,28 @@ const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
+// Track open connections for graceful shutdown
+let connections = [];
+server.on('connection', (conn) => {
+  connections.push(conn);
+  conn.on('close', () => {
+    connections = connections.filter((c) => c !== conn);
+  });
+});
+
 // Graceful shutdown
 const gracefulShutdown = async (signal) => {
   console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
 
+  // Stop accepting new connections
   server.close(async () => {
     console.log('HTTP server closed.');
     await Sentry.close(2000);
     process.exit(0);
   });
+
+  // Destroy idle keep-alive connections
+  connections.forEach((conn) => conn.destroy());
 
   setTimeout(() => {
     console.error('Forced shutdown after timeout.');

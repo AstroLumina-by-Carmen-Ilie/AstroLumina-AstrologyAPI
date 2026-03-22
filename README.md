@@ -1,72 +1,136 @@
 # AstroLumina Astrology API
 
-API Node.js (Express) pentru AstroLumina: un wrapper peste API-ul **Astrologer** (RapidAPI) care generează date astrologice pe baza informațiilor de naștere (data/ora/loc).
+Node.js (Express) API server that wraps the [Astrologer](https://rapidapi.com) astrological engine (RapidAPI). Generates natal chart data, filtered astral elements, SVG charts, and lunar phase information from birth data.
 
-## Ce face
+## Features
 
-- **Calculează automat timezone-ul** din lat/long (folosind `geo-tz`)
-- **Apelează Astrologer** pentru harta natală (`birth-chart`)
-- **Normalizează / filtrează răspunsurile** pentru consum ușor în frontend
-- **Localizare**: `ro` / `en` (planete, zodii, case, elemente, faze lunare)
-- **Protecție basic**: rate-limit global (20 req/min/IP) + CORS whitelist
+- **Automatic timezone detection** from latitude/longitude via `geo-tz`
+- **Astrologer API integration** — birth chart, aspects, planetary positions
+- **Filtered data endpoints** — full, natal, karmic subsets
+- **Localization** — Romanian (`ro`) and English (`en`)
+- **SVG chart rendering** — astrological wheel diagrams
+- **Lunar phase data** — phase name, illumination, upcoming phases
+- **Production observability** — Sentry error tracking, performance profiling, ANR detection
+- **Security** — Helmet, CORS whitelist, rate limiting (20 req/min/IP)
 
-## Cerințe
+## Tech Stack
 
-- **Node.js**: recomandat LTS (18+ / 20+)
-- **Chei RapidAPI** pentru Astrologer (vezi secțiunea “Configurare”)
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Node.js 18+ / 20+ (LTS) |
+| Framework | Express 4.x |
+| Monitoring | Sentry 10.x (with profiling) |
+| HTTP Client | Axios |
+| Middleware | Helmet, Compression, Morgan, CORS, Rate Limit |
 
-## Instalare
+## Project Structure
+
+```
+.
+├── server.js            # Main Express application
+├── instrument.js        # Sentry initialization (loaded first)
+├── constants.js         # Astrological constants (planets, houses, aspects)
+├── translations/
+│   ├── en.js            # English translations
+│   └── ro.js            # Romanian translations
+├── package.json
+└── .env                 # Environment variables (not committed)
+```
+
+## Prerequisites
+
+- **Node.js** 18+ or 20+ (LTS)
+- **RapidAPI** subscription for [Astrologer API](https://rapidapi.com)
+
+## Installation
 
 ```bash
 npm install
 ```
 
-## Configurare (.env)
+## Configuration
 
-Creează un fișier `.env` în rădăcina proiectului:
+Create a `.env` file in the project root:
 
 ```bash
-ASTROLOGER_API_KEY="..."
+# Required — Astrologer API credentials
+ASTROLOGER_API_KEY="your-rapidapi-key"
 ASTROLOGER_API_URL="https://astrologer.p.rapidapi.com"
 ASTROLOGER_API_HOST="astrologer.p.rapidapi.com"
+
+# Optional — Server
+PORT=3031                          # Default: 3031
+NODE_ENV=development               # development | production
+
+# Optional — CORS (comma-separated origins)
+CORS_ORIGINS="https://example.com,https://app.example.com"
+
+# Optional — Sentry error tracking
+SENTRY_DSN="your-sentry-dsn"
+SENTRY_RELEASE="v1.0.0"
 ```
 
-Note:
-- `ASTROLOGER_API_URL` este baza (fără trailing slash). Serverul apelează `.../api/v5/chart/birth-chart`.
-- Portul serverului este **hardcodat** la `3031` în `server.js`.
+### Environment Variables Reference
 
-## Rulare locală (dev)
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ASTROLOGER_API_KEY` | Yes | — | RapidAPI key for Astrologer |
+| `ASTROLOGER_API_URL` | Yes | — | Astrologer API base URL |
+| `ASTROLOGER_API_HOST` | Yes | — | RapidAPI host header |
+| `PORT` | No | `3031` | Server listen port |
+| `NODE_ENV` | No | `development` | Environment mode |
+| `CORS_ORIGINS` | No | *(hardcoded list)* | Comma-separated allowed origins |
+| `SENTRY_DSN` | No | — | Sentry DSN for error tracking |
+| `SENTRY_RELEASE` | No | — | Sentry release identifier |
 
-Proiectul pornește cu `nodemon`:
+## Usage
+
+### Development
 
 ```bash
-npm run start
+npm run dev    # Runs with nodemon (auto-reload)
 ```
 
-Serverul va fi disponibil la `http://localhost:3031`.
+### Production
 
-## Endpoint-uri
+```bash
+npm start      # Runs with node directly
+```
 
-Toate endpoint-urile acceptă `:lang` ∈ `{ro,en}`.
+Server starts at `http://localhost:3031`.
+
+## API Endpoints
+
+All endpoints use `POST` with JSON body and accept a `:lang` parameter (`ro` or `en`).
+
+### `GET /health`
+
+Health check endpoint. Returns server status, uptime, memory usage, and Node.js version.
+
+```bash
+curl http://localhost:3031/health
+```
 
 ### `POST /api/v2/:lang/birth-data`
 
-Returnează răspunsul complet de la Astrologer pentru harta natală (plus chart).
+Returns the complete Astrologer response for a natal chart (data + SVG).
 
-**Body (JSON):**
+**Request body:**
 
-- **longitude**: number \([-180, 180]\)
-- **latitude**: number \([-90, 90]\)
-- **year**: number \([1900, 2300]\)
-- **month**: number \([1, 12]\)
-- **day**: number \([1, 31]\)
-- **hour**: number \([0, 23]\)
-- **minute**: number \([0, 59]\)
-- **city**: string
-- **nation**: string
-- **name**: string
+| Field | Type | Range | Required |
+|-------|------|-------|----------|
+| `longitude` | number | [-180, 180] | Yes |
+| `latitude` | number | [-90, 90] | Yes |
+| `year` | number | [1, 3000] | Yes |
+| `month` | number | [1, 12] | Yes |
+| `day` | number | [1, 31] | Yes |
+| `hour` | number | [0, 23] | Yes |
+| `minute` | number | [0, 59] | Yes |
+| `city` | string | — | Yes |
+| `nation` | string | ISO 3166-1 alpha-2 | Yes |
+| `name` | string | — | Yes |
 
-Exemplu:
+**Example:**
 
 ```bash
 curl -sS -X POST "http://localhost:3031/api/v2/ro/birth-data" \
@@ -87,14 +151,14 @@ curl -sS -X POST "http://localhost:3031/api/v2/ro/birth-data" \
 
 ### `POST /api/v2/:lang/astral-data/:type?`
 
-Returnează o listă filtrată cu punctele/planetele "active" (din `constants.js`), **traduse** pentru `name`, `house`, `sign`, `element`.
+Returns filtered astrological data (planets, houses, aspects) with translated labels.
 
-Parametrul opțional `:type` poate fi:
-- **(fără type)**: returnează toate elementele
-- **type = `natal`**: returnează subsetul "natal" (ex. Soare/Lună etc.)
-- **type = `karmic`**: returnează subsetul "karmic" (noduri lunare, Lilith etc.)
+Optional `:type` parameter:
+- *(none)* — all active elements
+- `natal` — natal subset (Sun, Moon, Mars, Venus, Mercury)
+- `karmic` — karmic subset (outer planets, nodes, Lilith, houses, Chiron)
 
-Exemplu pentru toate elementele:
+**Example (all elements):**
 
 ```bash
 curl -sS -X POST "http://localhost:3031/api/v2/en/astral-data" \
@@ -102,15 +166,7 @@ curl -sS -X POST "http://localhost:3031/api/v2/en/astral-data" \
   -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
 ```
 
-Exemplu pentru elemente natale:
-
-```bash
-curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-data/natal" \
-  -H "Content-Type: application/json" \
-  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
-```
-
-Exemplu pentru elemente karmice:
+**Example (karmic elements, Romanian):**
 
 ```bash
 curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-data/karmic" \
@@ -120,39 +176,46 @@ curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-data/karmic" \
 
 ### `POST /api/v2/:lang/astral-chart`
 
-Returnează partea de `chart` (utilă pentru redare/diagramă). Intern, endpoint-ul reapelază `birth-data`.
-
-Exemplu:
-
-```bash
-curl -sS -X POST "http://localhost:3031/api/v2/ro/astral-chart" \
-  -H "Content-Type: application/json" \
-  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30,"city":"Bucharest","nation":"RO","name":"Demo"}'
-```
+Returns only the SVG chart data from the birth chart calculation.
 
 ### `POST /api/v2/:lang/lunar-data`
 
-Returnează datele de fază lunară (cu `moon_phase_name` tradus).
+Returns lunar phase information with the phase name translated to the specified language.
 
+## Security
 
-## Rate limiting
+- **Helmet** — secure HTTP headers
+- **Rate limiting** — 20 requests per minute per IP
+- **CORS** — explicit origin whitelist (configurable via `CORS_ORIGINS`)
+- **Request size limit** — 1MB max body; returns `413` if exceeded
+- **Sentry PII scrubbing** — API keys redacted from error reports
 
-- **Limită**: 20 request-uri / minut / IP (global, pe toate rutele)
-- La depășire: răspuns `429` cu mesaj “Too many requests...”
+## Error Handling
 
-## CORS
+| Status | Meaning |
+|--------|---------|
+| `400` | Invalid input (missing or out-of-range parameters, unsupported language) |
+| `404` | Route not found |
+| `413` | Request payload too large (>1MB) |
+| `429` | Rate limit exceeded |
+| `500` | Internal server error (upstream API failure, unexpected errors) |
 
-Serverul permite explicit o listă de origini (local + domenii AstroLumina). Dacă rulezi frontend-ul de pe alt domeniu/port, va trebui ajustată lista din `server.js`.
+In development mode, error responses include the stack trace for debugging.
 
-## Observații DevOps / deployment
+## Deployment
 
-- **Prod**: pentru un process manager, recomand `pm2` sau `systemd` și rulare cu `node server.js` (în loc de `nodemon`).
-- **Reverse proxy**: tipic Nginx/Caddy în față (TLS, compresie, logs).
-- **Env vars**: injectează `ASTROLOGER_API_*` în runtime (secrete), nu în repo.
-- **Port**: momentan este fix `3031`; pentru hosting pe PaaS unde portul vine din env, va fi nevoie de o mică ajustare în cod.
+- **Process manager**: use `pm2` or `systemd` in production
+- **Reverse proxy**: Nginx or Caddy in front (TLS termination, compression)
+- **Environment variables**: inject secrets at runtime, never commit `.env`
+- **Health monitoring**: `GET /health` returns uptime and memory stats
+- **Graceful shutdown**: handles `SIGTERM`/`SIGINT` — drains connections, flushes Sentry
 
 ## Troubleshooting
 
-- **401/403 de la RapidAPI**: verifică `ASTROLOGER_API_KEY` și `ASTROLOGER_API_HOST`.
-- **500 “Error getting data”**: serverul nu poate apela Astrologer (chei greșite, URL greșit, rate limit RapidAPI, sau rețea).
-- **Timezone greșit**: verifică `latitude/longitude` (în grade zecimale, semn corect).
+| Symptom | Cause |
+|---------|-------|
+| `401/403` from RapidAPI | Wrong `ASTROLOGER_API_KEY` or `ASTROLOGER_API_HOST` |
+| `500` "Error getting data" | Invalid API keys, wrong URL, RapidAPI rate limit, or network issue |
+| Wrong timezone | Check `latitude`/`longitude` are decimal degrees with correct signs |
+| `413` payload error | Request body exceeds 1MB limit |
+| `429` too many requests | Client exceeded 20 req/min rate limit |
