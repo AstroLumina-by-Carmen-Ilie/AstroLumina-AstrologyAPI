@@ -1,4 +1,4 @@
-export const translations = {
+const translations = {
   "types": {
     "planet": "Planet",
     "astral_point": "Astral point",
@@ -110,4 +110,6 @@ export const translations = {
     "Last Quarter": "Last Quarter",
     "Waning Crescent": "Waning Crescent",
   }
-}
+};
+
+module.exports = { translations };

@@ -1,4 +1,4 @@
-export const translations = {
+const translations = {
   "types": {
     "planet": "Planetă",
     "astral_point": "Punct virtual",
@@ -110,4 +110,6 @@ export const translations = {
     "Last Quarter": "Ultimul pătrar",
     "Waning Crescent": "Semilună în scădere",
   }
-}
+};
+
+module.exports = { translations };
