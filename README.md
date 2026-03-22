@@ -219,3 +219,4 @@ In development mode, error responses include the stack trace for debugging.
 | Wrong timezone | Check `latitude`/`longitude` are decimal degrees with correct signs |
 | `413` payload error | Request body exceeds 1MB limit |
 | `429` too many requests | Client exceeded 20 req/min rate limit |
+
