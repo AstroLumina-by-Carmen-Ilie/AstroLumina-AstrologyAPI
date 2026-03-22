@@ -61,7 +61,6 @@ app.use(express.json({
 
 // CORS — support CORS_ORIGINS env var (comma-separated) or fallback to defaults
 const defaultCorsOrigins = [
-  'http://localhost:3031',
   'http://localhost:5173',
   'https://astrolumina.pages.dev',
   'https://development.astrolumina.pages.dev',
