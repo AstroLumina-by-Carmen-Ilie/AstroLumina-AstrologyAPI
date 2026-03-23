@@ -111,6 +111,7 @@ function buildOptions(body: Record<string, unknown>) {
       active_points: used_elements,
       active_aspects: used_aspects,
       theme: 'light',
+      style: 'modern',
     },
   };
 }
