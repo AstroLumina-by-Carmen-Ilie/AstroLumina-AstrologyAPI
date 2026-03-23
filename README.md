@@ -2,6 +2,11 @@
 
 TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://rapidapi.com) astrological engine (RapidAPI). Generates natal chart data, filtered astral elements, SVG charts, and lunar phase information from birth data.
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Express](https://img.shields.io/badge/Express-5.x-green.svg)](https://expressjs.com/)
+[![Node](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
+[![Sentry](https://img.shields.io/badge/Sentry-10.x-purple.svg)](https://sentry.io/)
+
 ## Features
 
 - **Automatic timezone detection** from latitude/longitude via `geo-tz`
