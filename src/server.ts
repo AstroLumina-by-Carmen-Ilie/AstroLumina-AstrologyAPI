@@ -14,6 +14,9 @@ const isProduction = env.NODE_ENV === 'production';
 
 const app = express();
 
+// Trust proxy for correct IP detection behind reverse proxy (needed for rate limiting)
+app.set('trust proxy', 1);
+
 // ─── Security ────────────────────────────────────────────────
 app.use(securityHeaders);
 app.use(corsMiddleware);
