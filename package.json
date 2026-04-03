@@ -13,7 +13,8 @@
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "render-build": "rm -rf node_modules && npm install --include=dev && npm run build"
+    "render-build": "rm -rf node_modules && npm install --include=dev && npm run build",
+    "local-build": "rm -rf node_modules && rm -rf dist && npm update && npm install --include=dev && npm run build"
   },
   "dependencies": {
     "@sentry/node": "^10.45.0",
