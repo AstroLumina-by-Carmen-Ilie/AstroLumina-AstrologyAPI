@@ -16,7 +16,7 @@ import {
   karmic_elements,
 } from '../constants.js';
 import { validateLanguage, loadTranslations, getLanguage } from '../translations/index.js';
-import type { BirthDataResponse } from '../types/astrology.js';
+import type { BirthDataResponse, MoonPhaseResponse } from '../types/astrology.js';
 
 const router = Router();
 
@@ -64,9 +64,43 @@ function getValidationError(code: number): string {
       return 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute, city, nation, name';
     case 22:
       return 'Invalid parameter values. Check ranges: longitude [-180,180], latitude [-90,90], year [1,3000], month [1,12], day [1,31], hour [0,23], minute [0,59].';
+    case 31:
+      return 'Missing required parameters. Please provide: longitude, latitude, year, month, day, hour, minute.';
+    case 32:
+      return 'Invalid parameter values. Check ranges: longitude [-180,180], latitude [-90,90], year [1,3000], month [1,12], day [1,31], hour [0,23], minute [0,59].';
     default:
       return 'Validation error';
   }
+}
+
+function validateMoonPhaseData(req: Request): number {
+  const { longitude, latitude, year, month, day, hour, minute } = req.body as Record<string, unknown>;
+
+  if (
+    longitude === undefined || longitude === null ||
+    latitude === undefined || latitude === null ||
+    year === undefined || year === null ||
+    month === undefined || month === null ||
+    day === undefined || day === null ||
+    hour === undefined || hour === null ||
+    minute === undefined || minute === null
+  ) {
+    return 31;
+  }
+
+  if (
+    typeof longitude !== 'number' || longitude < -180 || longitude > 180 ||
+    typeof latitude !== 'number' || latitude < -90 || latitude > 90 ||
+    typeof year !== 'number' || year < 1 || year > 3000 ||
+    typeof month !== 'number' || month < 1 || month > 12 ||
+    typeof day !== 'number' || day < 1 || day > 31 ||
+    typeof hour !== 'number' || hour < 0 || hour > 23 ||
+    typeof minute !== 'number' || minute < 0 || minute > 59
+  ) {
+    return 32;
+  }
+
+  return 0;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -133,6 +167,47 @@ async function fetchBirthData(body: Record<string, unknown>): Promise<BirthDataR
   );
 }
 
+function buildMoonPhaseOptions(body: Record<string, unknown>) {
+  const { longitude, latitude, year, month, day, hour, minute } = body;
+  const tz = timezone(latitude as number, longitude as number)[0];
+
+  return {
+    method: 'POST' as const,
+    url: `${env.ASTROLOGER_API_URL}/api/v5/moon-phase`,
+    headers: {
+      'x-rapidapi-key': env.ASTROLOGER_API_KEY,
+      'x-rapidapi-host': env.ASTROLOGER_API_HOST,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      latitude,
+      longitude,
+      timezone: tz,
+    },
+  };
+}
+
+async function fetchMoonPhase(body: Record<string, unknown>): Promise<MoonPhaseResponse> {
+  const { year, latitude } = body;
+
+  return Sentry.startSpan(
+    { op: 'http.client', name: 'POST Astrologer API /moon-phase' },
+    async (span) => {
+      span?.setAttribute('astro.year', year as number);
+      span?.setAttribute('astro.latitude', latitude as number);
+
+      const options = buildMoonPhaseOptions(body);
+      const response = await axios.request<MoonPhaseResponse>(options);
+      return response.data;
+    },
+  );
+}
+
 function requireLanguage(req: Request, res: Response): string | null {
   const lang = getLanguage(req);
   if (!validateLanguage(lang)) {
@@ -153,7 +228,6 @@ function requireValidBody(req: Request, res: Response): boolean {
 
 // ─── Routes ───────────────────────────────────────────────────
 
-// Get full astral data from Astrologer
 router.post('/api/v2/:lang/birth-data', async (req: Request, res: Response, next: NextFunction) => {
   const lang = requireLanguage(req, res);
   if (!lang) return;
@@ -172,7 +246,6 @@ router.post('/api/v2/:lang/birth-data', async (req: Request, res: Response, next
   }
 });
 
-// Get filtered astral data — shared handler
 async function handleAstralData(
   type: string,
   req: Request,
@@ -292,7 +365,6 @@ async function handleAstralData(
   }
 }
 
-// Express 5 doesn't support :type? — register two routes
 router.post('/api/v2/:lang/astral-data', (req: Request, res: Response, next: NextFunction) => {
   handleAstralData('', req, res, next);
 });
@@ -302,7 +374,6 @@ router.post('/api/v2/:lang/astral-data/:type', (req: Request, res: Response, nex
   handleAstralData(type, req, res, next);
 });
 
-// Get filtered astral SVG chart
 router.post('/api/v2/:lang/astral-chart', async (req: Request, res: Response, next: NextFunction) => {
   const lang = requireLanguage(req, res);
   if (!lang) return;
@@ -321,27 +392,40 @@ router.post('/api/v2/:lang/astral-chart', async (req: Request, res: Response, ne
   }
 });
 
-// Get filtered lunar data
 router.post('/api/v2/:lang/lunar-data', async (req: Request, res: Response, next: NextFunction) => {
   const lang = requireLanguage(req, res);
   if (!lang) return;
 
   Sentry.setContext('request', { endpoint: 'lunar-data', language: lang });
 
-  if (!requireValidBody(req, res)) return;
-
-  const t = loadTranslations(lang);
+  const validation = validateMoonPhaseData(req);
+  if (validation !== 0) {
+    res.status(400).json({ error: getValidationError(validation) });
+    return;
+  }
 
   try {
-    const birthData = await fetchBirthData(req.body);
-    const lunarPhase = birthData.chart_data.lunar_phase as Record<string, unknown>;
+    const moonPhaseData = await fetchMoonPhase(req.body);
+    const t = loadTranslations(lang);
 
-    const allData = {
-      ...lunarPhase,
-      moon_phase_name: t.lunar_phases?.[lunarPhase['moon_phase_name'] as string] ?? lunarPhase['moon_phase_name'],
+    const translatedData = {
+      ...moonPhaseData,
+      moon_phase_overview: {
+        ...moonPhaseData.moon_phase_overview,
+        moon: {
+          ...moonPhaseData.moon_phase_overview.moon,
+          phase_name: t.lunar_phases?.[moonPhaseData.moon_phase_overview.moon.phase_name as string] ?? moonPhaseData.moon_phase_overview.moon.phase_name,
+          major_phase: t.lunar_phases?.[moonPhaseData.moon_phase_overview.moon.major_phase as string] ?? moonPhaseData.moon_phase_overview.moon.major_phase,
+          zodiac: {
+            ...moonPhaseData.moon_phase_overview.moon.zodiac,
+            moon_sign: t.signs?.[moonPhaseData.moon_phase_overview.moon.zodiac.moon_sign as string] ?? moonPhaseData.moon_phase_overview.moon.zodiac.moon_sign,
+            sun_sign: t.signs?.[moonPhaseData.moon_phase_overview.moon.zodiac.sun_sign as string] ?? moonPhaseData.moon_phase_overview.moon.zodiac.sun_sign,
+          },
+        },
+      },
     };
 
-    res.json(allData);
+    res.json(translatedData.moon_phase_overview);
   } catch (error) {
     console.error('Error fetching lunar data:', (error as Error).message);
     Sentry.captureException(error, { tags: { endpoint: 'lunar-data', language: lang } });
