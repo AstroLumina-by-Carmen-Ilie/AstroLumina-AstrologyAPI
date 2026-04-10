@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "render-build": "rm -rf node_modules && npm install --include=dev && npm run build",
-    "local-build": "rm -rf node_modules && rm -rf dist && npm update && npm install --include=dev && npm run build"
+    "local-build": "rm -rf node_modules && rm -rf dist && npm update && npm install --include=dev && npm run build",
+    "update-n-build": "npm update && npm install --include=dev --ignore-scripts && npm run build"
   },
   "dependencies": {
     "@sentry/node": "^10.45.0",
