@@ -12,9 +12,8 @@
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "render-build": "rm -rf node_modules && npm install --include=dev && npm run build",
-    "local-build": "rm -rf node_modules && rm -rf dist && npm update && npm install --include=dev && npm run build",
+    "clean": "rm -rf node_modules && rm -rf dist",
+    "render-build": "npm run clean && npm install --include=dev && npm run build",
     "update-n-build": "npm update && npm install --include=dev --ignore-scripts && npm run build"
   },
   "dependencies": {
