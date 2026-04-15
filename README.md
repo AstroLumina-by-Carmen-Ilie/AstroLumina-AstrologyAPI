@@ -1,6 +1,6 @@
 # AstroLumina Astrology API
 
-TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://rapidapi.com) astrological engine (RapidAPI). Generates natal chart data, filtered astral elements, SVG charts, and lunar phase information from birth data.
+TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://rapidapi.com/astrology-api) astrological engine (RapidAPI). Generates natal chart data, filtered astral elements, and lunar phase information from birth data.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Express](https://img.shields.io/badge/Express-5.x-green.svg)](https://expressjs.com/)
@@ -10,12 +10,11 @@ TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://
 ## Features
 
 - **Automatic timezone detection** from latitude/longitude via `geo-tz`
-- **Astrologer API integration** — birth chart, aspects, planetary positions
-- **Filtered data endpoints** — full, natal, karmic subsets
+- **Astrologer API v5 integration** — birth chart, aspects, planetary positions
+- **Filtered data endpoints** — full, natal, karmic subsets with translated labels
 - **Localization** — Romanian (`ro`) and English (`en`)
-- **SVG chart rendering** — astrological wheel diagrams
-- **Lunar phase data** — phase name, illumination, upcoming phases
-- **Production observability** — Sentry error tracking, performance profiling, ANR detection
+- **Lunar phase data** — phase name, illumination, zodiac signs, major phases
+- **Production observability** — Sentry error tracking, performance profiling
 - **Security** — Helmet, CORS whitelist, rate limiting (20 req/min/IP)
 
 ## Tech Stack
@@ -24,11 +23,12 @@ TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://
 |-------|-----------|
 | Runtime | Node.js 22.x (LTS) |
 | Framework | Express 5.x |
-| Language | TypeScript (ESM) |
+| Language | TypeScript (ESM, strict mode) |
 | Monitoring | Sentry 10.x (with profiling) |
 | HTTP Client | Axios |
 | Middleware | Helmet, Compression, Morgan, CORS, Rate Limit |
 | Validation | Zod |
+| Timezone | geo-tz |
 
 ## Project Structure
 
@@ -61,7 +61,7 @@ TypeScript/Node.js (Express 5.x) API server that wraps the [Astrologer](https://
 ## Prerequisites
 
 - **Node.js** 22.x (LTS)
-- **RapidAPI** subscription for [Astrologer API](https://rapidapi.com)
+- **RapidAPI** subscription for [Astrologer API](https://rapidapi.com/astrology-api)
 
 ## Installation
 
@@ -216,7 +216,27 @@ Returns only the SVG chart data from the birth chart calculation.
 
 ### `POST /api/v2/:lang/lunar-data`
 
-Returns lunar phase information with the phase name translated to the specified language.
+Returns lunar phase information with the phase name, illumination, zodiac signs, and major phase translated to the specified language.
+
+**Request body:**
+
+| Field | Type | Range | Required |
+|-------|------|-------|----------|
+| `longitude` | number | [-180, 180] | Yes |
+| `latitude` | number | [-90, 90] | Yes |
+| `year` | number | [1, 3000] | Yes |
+| `month` | number | [1, 12] | Yes |
+| `day` | number | [1, 31] | Yes |
+| `hour` | number | [0, 23] | Yes |
+| `minute` | number | [0, 59] | Yes |
+
+**Example:**
+
+```bash
+curl -sS -X POST "http://localhost:3031/api/v2/en/lunar-data" \
+  -H "Content-Type: application/json" \
+  -d '{"longitude":26.1025,"latitude":44.4268,"year":1994,"month":7,"day":16,"hour":10,"minute":30}'
+```
 
 ## Security
 
