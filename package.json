@@ -1,5 +1,5 @@
 {
-  "name": "astro-lumina-api",
+  "name": "astrolumina-astrology-api",
   "version": "2.0.0",
   "description": "A Node.js Astrological API server for Astro Lumina",
   "main": "dist/server.js",
