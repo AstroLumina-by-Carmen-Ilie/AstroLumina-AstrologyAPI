@@ -1,0 +1,60 @@
+# =============================================================================
+# AstroLumina - AstrologyAPI Docker Compose
+# Express API pentru date astrologice
+# =============================================================================
+services:
+  astrology-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Nume fix pentru container - util pentru logs și docker exec.
+    container_name: astrolumina-astrology-api
+    
+    # Restart automat după crash sau reboot,
+    # dar NU dacă a fost oprit manual cu docker stop.
+    restart: unless-stopped
+    
+    # Portul intern Vizibil DOAR în rețeaua Docker (pentru alte servicii).
+    # Pentru acces de pe host: folosește ports:
+    expose:
+      - "3031"
+    
+    # Expune portul și pe host (accesibil la http://localhost:3031).
+    # Pentru producție behind Traefik, scoate ports: și folosește doar expose.
+    ports:
+      - "3031:3031"
+    
+    # Încarcă variabilele din .env - le pasăm ca environment variables.
+    #ordon ${VAR} = folosește valoarea din .env sau suprascrie cu VAR Gol.
+    env_file:
+      - .env
+    
+    # Suprascrie valori specifice (dacă e nevoie)
+    environment:
+      # Implicit din .env, dar explicit pentru claritate
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3031}
+    
+    # Health check - verifică dacă containerul e sănătos
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3031/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      #start_period: timpul maxim pentru pornire (după care începe healthcheck)
+    
+    # Resources (opțional - previne consum excesiv)
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.5'
+    #      memory: 512M
+# =============================================================================
+# Rețea (opțional - implicită bridge)
+# # Alt serviciu în compose poate accesa: http://astrology-api:3031
+# =============================================================================
+# networks:
+#   default:
+#     name: astrolumina-astrology-network
