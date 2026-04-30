@@ -1,34 +1,57 @@
 services:
-  astrology-api:
+  traefik:
+    image: traefik:v3.1
+    container_name: astrology-api-traefik
+    restart: unless-stopped
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - ./certs:/certs
+      - ./logs:/var/log/traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    networks:
+      - astrology-api
+
+  astrology-api-blue:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: astrolumina-astrology-api
     restart: unless-stopped
-    expose:
-      - "3031"
-    ports:
-      - "3031:3031"
     env_file:
       - .env
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - PORT=${PORT:-3031}
+      - PORT=3031
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3031/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+    networks:
+      - astrology-api
+
+  astrology-api-green:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3031
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3031/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - astrology-api
 
 networks:
-  default:
-    name: astrolumina-astrology-network
+  astrology-api:
+    name: astrology-api-network
+    driver: bridge
