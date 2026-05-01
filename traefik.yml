@@ -2,6 +2,7 @@ global:
   checkNewVersion: false
   sendAnonymousUsage: false
 
+
 log:
   level: INFO
   filePath: /var/log/traefik/traefik.log
