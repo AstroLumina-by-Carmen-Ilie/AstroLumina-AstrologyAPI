@@ -33,6 +33,11 @@ COPY --from=builder /app/package.json ./
 ENV NODE_ENV=production
 ENV PORT=3031
 
+LABEL org.opencontainers.image.title="AstroLumina AstrologyAPI" \
+      org.opencontainers.image.description="Astrology API REST server wrapping the Astrologer API" \
+      org.opencontainers.image.vendor="AstroLumina" \
+      org.opencontainers.image.licenses="MIT"
+
 RUN chown -R nodejs:nodejs /app
 USER nodejs
 EXPOSE 3031
