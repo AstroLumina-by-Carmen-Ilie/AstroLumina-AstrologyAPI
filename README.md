@@ -5,7 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5.x-000000?style=flat&logo=express)](https://expressjs.com/)
-[![Sentry](https://img.shields.io/badge/Sentry-10.x-362d59?style=flat&logo=sentry)
+![Sentry](https://img.shields.io/badge/Sentry-10.x-362d59?style=flat&logo=sentry)
 ![Docker](https://img.shields.io/badge/Docker-25.0-2496ed?style=flat&logo=docker)
 ![CI/CD](https://img.shields.io/badge/GitHub_Actions-2088ff?style=flat&logo=githubactions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -26,18 +26,18 @@
 
 ## 🛠 Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| **Runtime** | Node.js 22.x (LTS) |
-| **Language** | TypeScript (ESM, strict mode) |
-| **Framework** | Express 5.x |
-| **Validation** | Zod |
-| **HTTP Client** | Axios |
-| **Middleware** | Helmet, Compression, Morgan, CORS, express-rate-limit |
-| **Monitoring** | Sentry 10.x (with profiling) |
-| **Timezone** | geo-tz |
-| **Container** | Docker, Docker Compose, Traefik |
-| **CI/CD** | GitHub Actions |
+| Category        | Technology                                            |
+| --------------- | ----------------------------------------------------- |
+| **Runtime**     | Node.js 22.x (LTS)                                    |
+| **Language**    | TypeScript (ESM, strict mode)                         |
+| **Framework**   | Express 5.x                                           |
+| **Validation**  | Zod                                                   |
+| **HTTP Client** | Axios                                                 |
+| **Middleware**  | Helmet, Compression, Morgan, CORS, express-rate-limit |
+| **Monitoring**  | Sentry 10.x (with profiling)                          |
+| **Timezone**    | geo-tz                                                |
+| **Container**   | Docker, Docker Compose, Traefik                       |
+| **CI/CD**       | GitHub Actions                                        |
 
 ---
 
@@ -144,16 +144,16 @@ SENTRY_RELEASE="v1.0.0"
 
 ### Environment Variables Reference
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ASTROLOGER_API_KEY` | ✅ | — | RapidAPI key for Astrologer |
-| `ASTROLOGER_API_URL` | ✅ | — | Astrologer API base URL |
-| `ASTROLOGER_API_HOST` | ✅ | — | RapidAPI host header |
-| `PORT` | ❌ | `3031` | Server listen port |
-| `NODE_ENV` | ❌ | `development` | Environment mode |
-| `CORS_ORIGINS` | ❌ | *(hardcoded list)* | Allowed origins |
-| `SENTRY_DSN` | ❌ | — | Sentry DSN for error tracking |
-| `SENTRY_RELEASE` | ❌ | — | Sentry release identifier |
+| Variable              | Required | Default            | Description                   |
+| --------------------- | -------- | ------------------ | ----------------------------- |
+| `ASTROLOGER_API_KEY`  | ✅       | —                  | RapidAPI key for Astrologer   |
+| `ASTROLOGER_API_URL`  | ✅       | —                  | Astrologer API base URL       |
+| `ASTROLOGER_API_HOST` | ✅       | —                  | RapidAPI host header          |
+| `PORT`                | ❌       | `3031`             | Server listen port            |
+| `NODE_ENV`            | ❌       | `development`      | Environment mode              |
+| `CORS_ORIGINS`        | ❌       | _(hardcoded list)_ | Allowed origins               |
+| `SENTRY_DSN`          | ❌       | —                  | Sentry DSN for error tracking |
+| `SENTRY_RELEASE`      | ❌       | —                  | Sentry release identifier     |
 
 ---
 
@@ -248,18 +248,18 @@ Returns the complete Astrologer response for a natal chart (data + SVG).
 
 **Request body:**
 
-| Field | Type | Range | Required |
-|-------|------|-------|----------|
-| `longitude` | number | [-180, 180] | ✅ |
-| `latitude` | number | [-90, 90] | ✅ |
-| `year` | number | [1, 3000] | ✅ |
-| `month` | number | [1, 12] | ✅ |
-| `day` | number | [1, 31] | ✅ |
-| `hour` | number | [0, 23] | ✅ |
-| `minute` | number | [0, 59] | ✅ |
-| `city` | string | — | ✅ |
-| `nation` | string | ISO 3166-1 alpha-2 | ✅ |
-| `name` | string | — | ✅ |
+| Field       | Type   | Range              | Required |
+| ----------- | ------ | ------------------ | -------- |
+| `longitude` | number | [-180, 180]        | ✅       |
+| `latitude`  | number | [-90, 90]          | ✅       |
+| `year`      | number | [1, 3000]          | ✅       |
+| `month`     | number | [1, 12]            | ✅       |
+| `day`       | number | [1, 31]            | ✅       |
+| `hour`      | number | [0, 23]            | ✅       |
+| `minute`    | number | [0, 59]            | ✅       |
+| `city`      | string | —                  | ✅       |
+| `nation`    | string | ISO 3166-1 alpha-2 | ✅       |
+| `name`      | string | —                  | ✅       |
 
 **Example:**
 
@@ -285,7 +285,8 @@ curl -sS -X POST "http://localhost:3031/api/v2/ro/birth-data" \
 Returns filtered astrological data with translated labels.
 
 **Optional `:type` parameter:**
-- *(none)* — all active elements
+
+- _(none)_ — all active elements
 - `natal` — natal subset (Sun, Moon, Mars, Venus, Mercury)
 - `karmic` — karmic subset (outer planets, nodes, Lilith, houses, Chiron)
 
@@ -315,15 +316,15 @@ Returns lunar phase information with phase name, illumination, zodiac signs, and
 
 **Request body:**
 
-| Field | Type | Range | Required |
-|-------|------|-------|----------|
-| `longitude` | number | [-180, 180] | ✅ |
-| `latitude` | number | [-90, 90] | ✅ |
-| `year` | number | [1, 3000] | ✅ |
-| `month` | number | [1, 12] | ✅ |
-| `day` | number | [1, 31] | ✅ |
-| `hour` | number | [0, 23] | ✅ |
-| `minute` | number | [0, 59] | ✅ |
+| Field       | Type   | Range       | Required |
+| ----------- | ------ | ----------- | -------- |
+| `longitude` | number | [-180, 180] | ✅       |
+| `latitude`  | number | [-90, 90]   | ✅       |
+| `year`      | number | [1, 3000]   | ✅       |
+| `month`     | number | [1, 12]     | ✅       |
+| `day`       | number | [1, 31]     | ✅       |
+| `hour`      | number | [0, 23]     | ✅       |
+| `minute`    | number | [0, 59]     | ✅       |
 
 **Example:**
 
@@ -337,25 +338,25 @@ curl -sS -X POST "http://localhost:3031/api/v2/en/lunar-data" \
 
 ## 🔐 Security
 
-| Feature | Implementation |
-|---------|----------------|
-| **HTTP Headers** | Helmet (CSP, HSTS, X-Frame-Options, etc.) |
-| **Rate Limiting** | 20 requests/minute per IP |
-| **CORS** | Explicit origin whitelist (configurable via `CORS_ORIGINS`) |
-| **Request Size** | Max 1MB body (returns `413` if exceeded) |
-| **PII Scrubbing** | Sentry automatically redacts API keys from error reports |
+| Feature           | Implementation                                              |
+| ----------------- | ----------------------------------------------------------- |
+| **HTTP Headers**  | Helmet (CSP, HSTS, X-Frame-Options, etc.)                   |
+| **Rate Limiting** | 20 requests/minute per IP                                   |
+| **CORS**          | Explicit origin whitelist (configurable via `CORS_ORIGINS`) |
+| **Request Size**  | Max 1MB body (returns `413` if exceeded)                    |
+| **PII Scrubbing** | Sentry automatically redacts API keys from error reports    |
 
 ---
 
 ## ⚠️ Error Handling
 
-| Status Code | Meaning |
-|-------------|---------|
-| `400` | Invalid input (missing or out-of-range parameters, unsupported language) |
-| `404` | Route not found |
-| `413` | Request payload too large (>1MB) |
-| `429` | Rate limit exceeded |
-| `500` | Internal server error (upstream API failure, unexpected errors) |
+| Status Code | Meaning                                                                  |
+| ----------- | ------------------------------------------------------------------------ |
+| `400`       | Invalid input (missing or out-of-range parameters, unsupported language) |
+| `404`       | Route not found                                                          |
+| `413`       | Request payload too large (>1MB)                                         |
+| `429`       | Rate limit exceeded                                                      |
+| `500`       | Internal server error (upstream API failure, unexpected errors)          |
 
 In development mode, error responses include the stack trace for debugging.
 
@@ -363,13 +364,13 @@ In development mode, error responses include the stack trace for debugging.
 
 ## 🔧 Troubleshooting
 
-| Symptom | Solution |
-|---------|----------|
-| `401/403` from RapidAPI | Verify `ASTROLOGER_API_KEY` and `ASTROLOGER_API_HOST` are correct |
-| `500` "Error getting data" | Check API keys, URL, RapidAPI rate limits, or network connectivity |
-| Wrong timezone | Ensure `latitude`/`longitude` are decimal degrees with correct signs |
-| `413` payload error | Request body exceeds 1MB limit — reduce payload size |
-| `429` too many requests | Client exceeded 20 req/min rate limit — implement retry with backoff |
+| Symptom                    | Solution                                                             |
+| -------------------------- | -------------------------------------------------------------------- |
+| `401/403` from RapidAPI    | Verify `ASTROLOGER_API_KEY` and `ASTROLOGER_API_HOST` are correct    |
+| `500` "Error getting data" | Check API keys, URL, RapidAPI rate limits, or network connectivity   |
+| Wrong timezone             | Ensure `latitude`/`longitude` are decimal degrees with correct signs |
+| `413` payload error        | Request body exceeds 1MB limit — reduce payload size                 |
+| `429` too many requests    | Client exceeded 20 req/min rate limit — implement retry with backoff |
 
 ---
 
@@ -385,6 +386,7 @@ In development mode, error responses include the stack trace for debugging.
 ### Auto-Version (on PR merge to `main`)
 
 When a PR is merged to `main`, the pipeline automatically:
+
 1. Reads `VERSION.json` for major/minor version
 2. Increments the patch version
 3. Creates and pushes a new git tag
