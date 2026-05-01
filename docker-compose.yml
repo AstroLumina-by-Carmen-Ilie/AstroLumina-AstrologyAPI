@@ -16,8 +16,7 @@ services:
       - astrology-api
 
   astrology-api-blue:
-    build:
-      context: .
+    image: ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:2.0.1
     restart: unless-stopped
     env_file:
       - .env
@@ -43,8 +42,7 @@ services:
       - astrology-api
 
   astrology-api-green:
-    build:
-      context: .
+    image: ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:2.0.1
     restart: unless-stopped
     env_file:
       - .env
