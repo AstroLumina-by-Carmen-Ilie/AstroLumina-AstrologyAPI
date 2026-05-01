@@ -30,9 +30,18 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.125'
+          memory: 128M
     networks:
       - astrology-api
-
+  
   astrology-api-green:
     build:
       context: .
@@ -48,6 +57,15 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.125'
+          memory: 128M
     networks:
       - astrology-api
 
