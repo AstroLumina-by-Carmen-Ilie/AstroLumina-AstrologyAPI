@@ -127,7 +127,7 @@ ASTROLOGER_API_HOST="astrologer.p.rapidapi.com"
 # =============================================================================
 # Optional — Server
 # =============================================================================
-PORT=3031                          # Default: 3031
+ASTROLOGY_API_SERVER_PORT=3031                          # Default: 3031
 NODE_ENV=development               # development | production
 
 # =============================================================================
@@ -138,22 +138,22 @@ CORS_ORIGINS="https://example.com,https://app.example.com"
 # =============================================================================
 # Optional — Sentry (error tracking & profiling)
 # =============================================================================
-SENTRY_DSN="your-sentry-dsn"
+ASTROLOGY_API_SENTRY_DSN="your-sentry-dsn"
 SENTRY_RELEASE="v1.0.0"
 ```
 
 ### Environment Variables Reference
 
-| Variable              | Required | Default            | Description                   |
-| --------------------- | -------- | ------------------ | ----------------------------- |
-| `ASTROLOGER_API_KEY`  | ✅       | —                  | RapidAPI key for Astrologer   |
-| `ASTROLOGER_API_URL`  | ✅       | —                  | Astrologer API base URL       |
-| `ASTROLOGER_API_HOST` | ✅       | —                  | RapidAPI host header          |
-| `PORT`                | ❌       | `3031`             | Server listen port            |
-| `NODE_ENV`            | ❌       | `development`      | Environment mode              |
-| `CORS_ORIGINS`        | ❌       | _(hardcoded list)_ | Allowed origins               |
-| `SENTRY_DSN`          | ❌       | —                  | Sentry DSN for error tracking |
-| `SENTRY_RELEASE`      | ❌       | —                  | Sentry release identifier     |
+| Variable                    | Required | Default            | Description                             |
+| --------------------------- | -------- | ------------------ | --------------------------------------- |
+| `ASTROLOGER_API_KEY`        | ✅       | —                  | RapidAPI key for Astrologer             |
+| `ASTROLOGER_API_URL`        | ✅       | —                  | Astrologer API base URL                 |
+| `ASTROLOGER_API_HOST`       | ✅       | —                  | RapidAPI host header                    |
+| `ASTROLOGY_API_SERVER_PORT` | ❌       | `3031`             | Server listen ASTROLOGY_API_SERVER_PORT |
+| `NODE_ENV`                  | ❌       | `development`      | Environment mode                        |
+| `CORS_ORIGINS`              | ❌       | _(hardcoded list)_ | Allowed origins                         |
+| `ASTROLOGY_API_SENTRY_DSN`  | ❌       | —                  | Sentry DSN for error tracking           |
+| `SENTRY_RELEASE`            | ❌       | —                  | Sentry release identifier               |
 
 ---
 

@@ -1,17 +1,36 @@
 services:
-  astrology:
+  astrology-api:
     build:
       context: .
       dockerfile: Dockerfile
     image: ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:latest
     pull_policy: always
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - ASTROLOGY_API_SERVER_PORT=${ASTROLOGY_API_SERVER_PORT}
+      - ASTROLOGY_API_SERVER_DNS=${ASTROLOGY_API_SERVER_DNS}
+      - BOOKING_API_SERVER_PORT=${BOOKING_API_SERVER_PORT}
+      - BOOKING_API_SERVER_DNS=${BOOKING_API_SERVER_DNS}
+      - PAYMENT_API_SERVER_PORT=${PAYMENT_API_SERVER_PORT}
+      - PAYMENT_API_SERVER_DNS=${PAYMENT_API_SERVER_DNS}
+      - FRONTEND_SERVER_PORT=${FRONTEND_SERVER_PORT}
+      - FRONTEND_SERVER_DNS=${FRONTEND_SERVER_DNS}
+      - ASTROLOGY_API_SENTRY_DSN=${ASTROLOGY_API_SENTRY_DSN}
+      - ASTROLOGER_API_URL=${ASTROLOGER_API_URL}
+      - ASTROLOGER_API_HOST=${ASTROLOGER_API_HOST}
+      - ASTROLOGER_API_KEY=${ASTROLOGER_API_KEY}
     ports:
-      - "3031:3031"
+      - "${ASTROLOGY_API_SERVER_PORT}:${ASTROLOGY_API_SERVER_PORT}"
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3031/health" ]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "http://localhost:${ASTROLOGY_API_SERVER_PORT}/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -20,10 +39,10 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
         reservations:
-          cpus: '0.125'
+          cpus: "0.125"
           memory: 128M
     networks:
       - astrology-api
