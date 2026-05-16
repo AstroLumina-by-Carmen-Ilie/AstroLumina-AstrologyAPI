@@ -1,21 +1,29 @@
 // Sentry instrument must be loaded first
-import { Sentry } from './instrument.js';
+import { Sentry } from "./instrument.js";
 
-import express from 'express';
-import compression from 'compression';
-import morgan from 'morgan';
-import { env } from './config/env.js';
-import { securityHeaders, corsMiddleware, rateLimiter } from './middleware/security.js';
-import { payloadTooLargeHandler, notFoundHandler, globalErrorHandler } from './middleware/error-handler.js';
-import healthRouter from './routes/health.js';
-import astrologyRouter from './routes/astrology.js';
+import express from "express";
+import compression from "compression";
+import morgan from "morgan";
+import { env } from "./config/env.js";
+import {
+  securityHeaders,
+  corsMiddleware,
+  rateLimiter,
+} from "./middleware/security.js";
+import {
+  payloadTooLargeHandler,
+  notFoundHandler,
+  globalErrorHandler,
+} from "./middleware/error-handler.js";
+import healthRouter from "./routes/health.js";
+import astrologyRouter from "./routes/astrology.js";
 
-const isProduction = env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === "production";
 
 const app = express();
 
 // Trust proxy for correct IP detection behind reverse proxy (needed for rate limiting)
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // ─── Security ────────────────────────────────────────────────
 app.use(securityHeaders);
@@ -26,15 +34,17 @@ app.use(rateLimiter);
 app.use(compression());
 
 // ─── Logging ─────────────────────────────────────────────────
-app.use(morgan(isProduction ? 'combined' : 'dev'));
+app.use(morgan(isProduction ? "combined" : "dev"));
 
 // ─── Body parser ─────────────────────────────────────────────
-app.use(express.json({
-  limit: '1mb',
-  verify: (req: express.Request & { rawBody?: Buffer }, _res, buf) => {
-    req.rawBody = buf;
-  },
-}));
+app.use(
+  express.json({
+    limit: "1mb",
+    verify: (req: express.Request & { rawBody?: Buffer }, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 
 // ─── Routes ──────────────────────────────────────────────────
 app.use(healthRouter);
@@ -51,18 +61,20 @@ Sentry.setupExpressErrorHandler(app);
 app.use(globalErrorHandler);
 
 // ─── Server startup ──────────────────────────────────────────
-const server = app.listen(env.PORT, () => {
-  console.log(`Server is running on http://localhost:${env.PORT}`);
+const server = app.listen(env.ASTROLOGY_API_SERVER_PORT, () => {
+  console.log(
+    `Server is running on http://localhost:${env.ASTROLOGY_API_SERVER_PORT}`,
+  );
   console.log(`   Environment: ${env.NODE_ENV}`);
   console.log(`   Node: ${process.version}`);
 });
 
 // ─── Connection tracking for graceful shutdown ────────────────
-const connections = new Set<import('net').Socket>();
+const connections = new Set<import("net").Socket>();
 
-server.on('connection', (conn) => {
+server.on("connection", (conn) => {
   connections.add(conn);
-  conn.on('close', () => connections.delete(conn));
+  conn.on("close", () => connections.delete(conn));
 });
 
 // ─── Graceful shutdown ───────────────────────────────────────
@@ -70,10 +82,10 @@ const gracefulShutdown = async (signal: string) => {
   console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
 
   server.close(async () => {
-    console.log('HTTP server closed.');
+    console.log("HTTP server closed.");
 
     await Sentry.close(2000);
-    console.log('Sentry flushed.');
+    console.log("Sentry flushed.");
 
     process.exit(0);
   });
@@ -84,10 +96,10 @@ const gracefulShutdown = async (signal: string) => {
   }
 
   setTimeout(() => {
-    console.error('Forced shutdown after timeout.');
+    console.error("Forced shutdown after timeout.");
     process.exit(1);
   }, 10_000);
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));

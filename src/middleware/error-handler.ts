@@ -1,5 +1,5 @@
-import type { Request, Response, NextFunction } from 'express';
-import { env } from '../config/env.js';
+import type { Request, Response, NextFunction } from "express";
+import { env } from "../config/env.js";
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -20,15 +20,20 @@ export function payloadTooLargeHandler(
   res: Response,
   next: NextFunction,
 ): void {
-  if (err.message?.includes('entity.too.large') || err.type === 'entity.too.large') {
-    res.status(413).json({ error: 'Request payload too large. Maximum size is 1MB.' });
+  if (
+    err.message?.includes("entity.too.large") ||
+    err.type === "entity.too.large"
+  ) {
+    res
+      .status(413)
+      .json({ error: "Request payload too large. Maximum size is 1MB." });
     return;
   }
   next(err);
 }
 
 export function notFoundHandler(_req: Request, res: Response): void {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: "Route not found" });
 }
 
 export function globalErrorHandler(
@@ -37,13 +42,13 @@ export function globalErrorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
-  console.error('Unhandled error:', err);
+  console.error("Unhandled error:", err);
 
-  const isProduction = env.NODE_ENV === 'production';
+  const isProduction = env.NODE_ENV === "production";
   const statusCode = err.statusCode ?? 500;
 
   const response: Record<string, unknown> = {
-    error: isProduction ? 'Internal server error' : err.message,
+    error: isProduction ? "Internal server error" : err.message,
   };
 
   if (!isProduction) {
