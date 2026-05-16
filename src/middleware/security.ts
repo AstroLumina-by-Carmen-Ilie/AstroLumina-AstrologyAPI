@@ -23,7 +23,7 @@ const defaultOrigins = [
   `https://${env.PAYMENT_API_SERVER_DNS}:${env.PAYMENT_API_SERVER_PORT}`,
   
   "https://astrolumina.pages.dev",
-  "https://development.astrolumina.pages.dev",
+  "https://develop.astrolumina.pages.dev",
   "https://astrolumina.com",
   "https://astrolumina.ro",
 ];
