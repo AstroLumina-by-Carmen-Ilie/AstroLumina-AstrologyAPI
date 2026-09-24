@@ -1,5 +1,5 @@
 # =============================================================================
-# AstroLumina PaymentAPI — Security Scan
+# AstroLumina AstrologyAPI — Security Scan
 #
 # Three pillars of vulnerability scanning:
 #   1. STATIC  (SAST + SCA) — Semgrep scans the source; npm audit + Trivy
@@ -161,13 +161,13 @@ jobs:
           context: .
           push: false
           load: true
-          tags: payment-api:security-scan
+          tags: astrology-api:security-scan
 
       - name: Trivy image scan (report only)
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0, SHA-pinned (supply-chain safety)
         with:
           scan-type: image
-          image-ref: payment-api:security-scan
+          image-ref: astrology-api:security-scan
           scanners: vuln,misconfig,secret
           severity: CRITICAL,HIGH
           limit-severities-for-sarif: 'true'
@@ -185,9 +185,9 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────
   # 3. DYNAMIC — boot the API, run OWASP ZAP baseline scan against it
   #
-  # The app validates env strictly (zod) but never calls Stripe/Sentry at
+  # The app validates env strictly (zod) but never calls Astrologer/Sentry at
   # boot, so syntactically-valid dummy values are enough for a baseline
-  # crawl of: GET /health, GET /products, GET /session-status, 404 handling.
+  # crawl of: GET /, GET /health, 404 handling.
   # ─────────────────────────────────────────────────────────────────────────
   dast-zap:
     name: DAST / OWASP ZAP baseline
@@ -230,8 +230,8 @@ jobs:
           node dist/server.js > api.log 2>&1 &
           echo $! > api.pid
           for i in $(seq 1 30); do
-            if curl -fs "http://localhost:${ASTROLOGYAPI_SERVER_PORT}/health" > /dev/null; then
-              echo "API is up on port ${ASTROLOGYAPI_SERVER_PORT}"
+            if curl -fs "http://localhost:${ASTROLOGY_API_SERVER_PORT}/health" > /dev/null; then
+              echo "API is up on port ${ASTROLOGY_API_SERVER_PORT}"
               exit 0
             fi
             sleep 2
@@ -252,7 +252,7 @@ jobs:
             -v "${{ github.workspace }}/zap-reports:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
-              -t "http://localhost:${ASTROLOGYAPI_SERVER_PORT}" \
+              -t "http://localhost:${ASTROLOGY_API_SERVER_PORT}" \
               -r baseline-report.html \
               -J baseline-report.json
 
