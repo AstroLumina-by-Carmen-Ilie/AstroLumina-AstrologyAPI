@@ -230,8 +230,8 @@ jobs:
           node dist/server.js > api.log 2>&1 &
           echo $! > api.pid
           for i in $(seq 1 30); do
-            if curl -fs "http://localhost:${PAYMENT_API_SERVER_PORT}/health" > /dev/null; then
-              echo "API is up on port ${PAYMENT_API_SERVER_PORT}"
+            if curl -fs "http://localhost:${ASTROLOGYAPI_SERVER_PORT}/health" > /dev/null; then
+              echo "API is up on port ${ASTROLOGYAPI_SERVER_PORT}"
               exit 0
             fi
             sleep 2
@@ -252,7 +252,7 @@ jobs:
             -v "${{ github.workspace }}/zap-reports:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
-              -t "http://localhost:${PAYMENT_API_SERVER_PORT}" \
+              -t "http://localhost:${ASTROLOGYAPI_SERVER_PORT}" \
               -r baseline-report.html \
               -J baseline-report.json
 
