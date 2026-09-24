@@ -17,9 +17,9 @@
     "c_u_i_b_d": "npm run clean && npm update --ignore-scripts && npm install --include=dev && npm run build && npm run dev"
   },
   "dependencies": {
-    "@sentry/node": "^10.45.0",
-    "@sentry/profiling-node": "^8.55.0",
-    "axios": "^1.13.6",
+    "@sentry/node": "^10.75.3",
+    "@sentry/profiling-node": "^11.0.0",
+    "axios": "^1.18.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
@@ -27,7 +27,7 @@
     "express-rate-limit": "^7.5.1",
     "geo-tz": "^8.1.6",
     "helmet": "^8.1.0",
-    "morgan": "^1.10.1",
+    "morgan": "^1.12.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
