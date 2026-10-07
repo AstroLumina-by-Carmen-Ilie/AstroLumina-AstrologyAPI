@@ -30,7 +30,7 @@
 | ----------------- | ----------------------------------------------------------- |
 | **HTTP Headers**  | Helmet (CSP, HSTS, X-Frame-Options, etc.)                   |
 | **Rate Limiting** | 30 requests/minute per IP                                   |
-| **CORS**          | Dynamic whitelist built from `*_SERVER_PORT` / `*_SERVER_DNS` env vars (Astrology, Booking, Payment, Frontend services) + Cloudflare Pages domains (`astrolumina.pages.dev`, `develop.astrolumina.pages.dev`, `astrolumina.com`, `astrolumina.ro`). Override via `CORS_ORIGINS`. |
+| **CORS**          | Dynamic whitelist built from `*_SERVER_DC_PORT` / `*_SERVER_DC_DNS` and `*_SERVER_K8S_PORT` / `*_SERVER_K8S_DNS` env vars (Astrology, Booking, Payment, Frontend services) over `http` + `https` on `localhost`, `192.168.122.10-12` and each service DNS + Cloudflare Pages domains (`astrolumina.pages.dev`, `develop.astrolumina.pages.dev`, `astrolumina.com`, `astrolumina.ro`). Override via `CORS_ORIGINS`. |
 | **Request Size**  | Max 1MB body (returns `413` if exceeded)                    |
 | **PII Scrubbing** | Sentry automatically redacts API keys from error reports    |
 | **Input Validation** | Zod schemas on all endpoint inputs                       |
@@ -124,22 +124,31 @@ The AstrologyAPI is a **single-service** deployment that acts as a proxy and tra
 
 ## Environment Variables
 
-| Variable                      | Required | Default            | Description                                     |
-| ----------------------------- | -------- | ------------------ | ----------------------------------------------- |
-| `NODE_ENV`                    | Yes      | —                  | Environment mode (`development`, `staging`, `production`) |
-| `ASTROLOGER_API_KEY`          | Yes      | —                  | RapidAPI key for Astrologer                     |
-| `ASTROLOGER_API_URL`          | Yes      | —                  | Astrologer API base URL                         |
-| `ASTROLOGER_API_HOST`         | Yes      | —                  | RapidAPI host header                            |
-| `ASTROLOGY_API_SERVER_PORT`   | Yes      | —                  | This server's listen port                       |
-| `ASTROLOGY_API_SERVER_DNS`    | Yes      | —                  | This server's DNS/hostname                      |
-| `BOOKING_API_SERVER_PORT`     | Yes      | —                  | Booking service port                            |
-| `BOOKING_API_SERVER_DNS`      | Yes      | —                  | Booking service DNS/hostname                    |
-| `PAYMENT_API_SERVER_PORT`     | Yes      | —                  | Payment service port                            |
-| `PAYMENT_API_SERVER_DNS`      | Yes      | —                  | Payment service DNS/hostname                    |
-| `FRONTEND_SERVER_PORT`        | Yes      | —                  | Frontend dev server port                        |
-| `FRONTEND_SERVER_DNS`         | Yes      | —                  | Frontend DNS/hostname                           |
-| `ASTROLOGY_API_SENTRY_DSN`    | Yes      | —                  | Sentry DSN for error tracking                   |
-| `CORS_ORIGINS`                | No       | _(dynamic defaults)_ | Comma-separated allowed origins; when omitted, defaults are built from the `*_SERVER_PORT` and `*_SERVER_DNS` variables above plus Cloudflare Pages domains |
+| Variable                        | Required | Default            | Description                                     |
+| ------------------------------- | -------- | ------------------ | ----------------------------------------------- |
+| `NODE_ENV`                      | Yes      | —                  | Environment mode (`development`, `staging`, `production`) |
+| `ASTROLOGER_API_KEY`            | Yes      | —                  | RapidAPI key for Astrologer                     |
+| `ASTROLOGER_API_URL`            | Yes      | —                  | Astrologer API base URL                         |
+| `ASTROLOGER_API_HOST`           | Yes      | —                  | RapidAPI host header                            |
+| `ASTROLOGY_API_SERVER_PORT`     | Yes      | —                  | This server's listen port (local process and inside the container) |
+| `ASTROLOGY_API_SERVER_DC_PORT`  | Yes      | —                  | Public port mapped to the app port in Docker Compose |
+| `ASTROLOGY_API_SERVER_DC_DNS`   | Yes      | —                  | Astrology service DNS/hostname in Docker Compose |
+| `ASTROLOGY_API_SERVER_K8S_PORT` | Yes      | —                  | Public port mapped to the app port in Kubernetes |
+| `ASTROLOGY_API_SERVER_K8S_DNS`  | Yes      | —                  | Astrology service DNS/hostname in Kubernetes |
+| `BOOKING_API_SERVER_DC_PORT`    | Yes      | —                  | Booking service port in Docker Compose       |
+| `BOOKING_API_SERVER_DC_DNS`     | Yes      | —                  | Booking service DNS/hostname in Docker Compose |
+| `BOOKING_API_SERVER_K8S_PORT`   | Yes      | —                  | Booking service port in Kubernetes           |
+| `BOOKING_API_SERVER_K8S_DNS`    | Yes      | —                  | Booking service DNS/hostname in Kubernetes   |
+| `PAYMENT_API_SERVER_DC_PORT`    | Yes      | —                  | Payment service port in Docker Compose       |
+| `PAYMENT_API_SERVER_DC_DNS`     | Yes      | —                  | Payment service DNS/hostname in Docker Compose |
+| `PAYMENT_API_SERVER_K8S_PORT`   | Yes      | —                  | Payment service port in Kubernetes           |
+| `PAYMENT_API_SERVER_K8S_DNS`    | Yes      | —                  | Payment service DNS/hostname in Kubernetes   |
+| `FRONTEND_SERVER_DC_PORT`       | Yes      | —                  | Frontend port in Docker Compose               |
+| `FRONTEND_SERVER_DC_DNS`        | Yes      | —                  | Frontend DNS/hostname in Docker Compose       |
+| `FRONTEND_SERVER_K8S_PORT`      | Yes      | —                  | Frontend port in Kubernetes                   |
+| `FRONTEND_SERVER_K8S_DNS`       | Yes      | —                  | Frontend DNS/hostname in Kubernetes           |
+| `ASTROLOGY_API_SENTRY_DSN`      | Yes      | —                  | Sentry DSN for error tracking                   |
+| `CORS_ORIGINS`                  | No       | _(dynamic defaults)_ | Comma-separated allowed origins; when omitted, defaults are built from the `*_SERVER_DC_PORT` / `*_SERVER_DC_DNS` and `*_SERVER_K8S_PORT` / `*_SERVER_K8S_DNS` variables above plus Cloudflare Pages domains |
 
 ---
 
