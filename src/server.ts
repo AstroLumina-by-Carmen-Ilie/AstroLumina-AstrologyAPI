@@ -16,6 +16,7 @@ import {
   globalErrorHandler,
 } from "./middleware/error-handler.js";
 import healthRouter from "./routes/health.js";
+import { metricsHandler, metricsMiddleware } from "./metrics.js";
 import astrologyRouter from "./routes/astrology.js";
 
 const isProduction = env.NODE_ENV === "production";
@@ -24,6 +25,13 @@ const app = express();
 
 // Trust proxy for correct IP detection behind reverse proxy (needed for rate limiting)
 app.set("trust proxy", 1);
+
+// ─── Metrics ─────────────────────────────────────────────────
+// Registered before the security middlewares so Prometheus scrapes are
+// never rate-limited nor CORS-filtered. Reachable only in-cluster (the
+// Traefik routes expose /api/*, never /metrics).
+app.get("/metrics", metricsHandler);
+app.use(metricsMiddleware);
 
 // ─── Security ────────────────────────────────────────────────
 app.use(securityHeaders);
@@ -63,7 +71,7 @@ app.use(globalErrorHandler);
 // ─── Server startup ──────────────────────────────────────────
 const server = app.listen(env.ASTROLOGY_API_SERVER_PORT, () => {
   console.log(
-    `Server is running on http://localhost:${env.ASTROLOGY_API_SERVER_PORT}`,
+    `🚀 Astrology API running on http://localhost:${env.ASTROLOGY_API_SERVER_PORT}`,
   );
   console.log(`   Environment: ${env.NODE_ENV}`);
   console.log(`   Node: ${process.version}`);
@@ -79,24 +87,23 @@ server.on("connection", (conn) => {
 
 // ─── Graceful shutdown ───────────────────────────────────────
 const gracefulShutdown = async (signal: string) => {
-  console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+  console.log(`\n⚠️  Received ${signal}. Starting graceful shutdown...`);
 
   server.close(async () => {
-    console.log("HTTP server closed.");
+    console.log("   HTTP server closed.");
 
     await Sentry.close(2000);
-    console.log("Sentry flushed.");
+    console.log("   Sentry flushed.");
 
     process.exit(0);
   });
 
-  // Destroy idle keep-alive connections
   for (const conn of connections) {
     conn.destroy();
   }
 
   setTimeout(() => {
-    console.error("Forced shutdown after timeout.");
+    console.error("   Forced shutdown after timeout.");
     process.exit(1);
   }, 10_000);
 };
