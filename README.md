@@ -241,6 +241,17 @@ Health check endpoint. Returns server status, uptime, memory usage, and Node.js 
 curl http://localhost:<PORT>/health
 ```
 
+### `GET /metrics`
+
+Prometheus exposition endpoint (plain text). Serves Node.js default metrics
+plus `http_requests_total` and `http_request_duration_seconds`, all labeled
+with `service`. Scraped in-cluster via the `ServiceMonitor`s in the
+AstroLumina-Monitoring repo; not exposed through Traefik.
+
+```bash
+curl http://localhost:<PORT>/metrics
+```
+
 ### `POST /api/v2/:lang/birth-data`
 
 Returns the complete Astrologer response for a natal chart (data + SVG).
