@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "type": "module",
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "scripts": {
     "build": "tsc",
@@ -40,5 +40,12 @@
     "@types/node": "^22.15.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"
+  },
+  "allowScripts": {
+    "@sentry/node-cpu-profiler": true,
+    "esbuild": true
+  },
+  "overrides": {
+    "text-encoding": "file:../../vendor/text-encoding-shim-1.0.0.tgz"
   }
 }

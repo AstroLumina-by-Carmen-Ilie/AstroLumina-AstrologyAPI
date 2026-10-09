@@ -1,0 +1,7 @@
+{
+  "name": "text-encoding-shim",
+  "version": "1.0.0",
+  "description": "Local stand-in for the abandoned text-encoding polyfill (see overrides in package.json)",
+  "main": "index.js",
+  "license": "Unlicense"
+}
