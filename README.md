@@ -192,10 +192,10 @@ The `render-build` script handles clean install (including devDependencies for T
 Images are automatically built and pushed to GitHub Container Registry:
 
 ```
-ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:latest
-ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:v2.0.0
-ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:v2.0
-ghcr.io/astrolumina-by-carmen-ilie/astrolumina-astrologyapi:v2
+ghcr.io/astrolumina-rise-n-shine/astrolumina-astrologyapi:latest
+ghcr.io/astrolumina-rise-n-shine/astrolumina-astrologyapi:v2.0.0
+ghcr.io/astrolumina-rise-n-shine/astrolumina-astrologyapi:v2.0
+ghcr.io/astrolumina-rise-n-shine/astrolumina-astrologyapi:v2
 ```
 
 ### CI/CD Pipeline
