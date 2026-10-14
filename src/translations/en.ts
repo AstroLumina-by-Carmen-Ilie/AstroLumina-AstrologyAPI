@@ -14,7 +14,7 @@ const en = {
   planets: {
     Sun: "Sun",
     Moon: "Moon",
-    Mercury: "Mercur",
+    Mercury: "Mercury",
     Venus: "Venus",
     Mars: "Mars",
     Jupiter: "Jupiter",
